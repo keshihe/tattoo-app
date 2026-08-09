@@ -391,8 +391,9 @@
             calibration.strictMode = true;
         }
 
-        // relaxedMode: 已治疗4次以上 + 彩色
-        if (q.treatments === '4_plus' && q.inkColor === 'colorful') {
+        // relaxedMode: 已治疗过(1-3次/4+次) → 色素可能已淡化，降低检测门槛
+        // 有疤痕 → 皮肤纹理变化影响局部皮肤密度判断，亦需放宽
+        if (q.treatments === '1-3' || q.treatments === '4_plus' || q.hasScar === 'yes') {
             calibration.relaxedMode = true;
         }
 
@@ -429,10 +430,10 @@
             result.needFollowUp = false;
             result.followUpQuestion = '';
         }
-        // 2. 已治疗4次以上 + 图片少量 → high（确认为残留）
-        else if (q.treatments === '4_plus' && (result.inkCoveragePct < 10 || result.coverageLabel === '小面积')) {
+        // 2. 已治疗过(1-3次或4+) + 图片少量/未检出 → high（符合治疗后预期）
+        else if ((q.treatments === '1-3' || q.treatments === '4_plus') && (result.inkCoveragePct < 15 || result.coverageLabel === '小面积' || hasNoInk)) {
             result.confidence = 'high';
-            result.crossCheckNote = '问卷与图片分析一致：已治疗多次，图片仅剩少量边缘色素，确认为残留';
+            result.crossCheckNote = '问卷与图片分析一致：已治疗过，图片显示色素已淡化或仅残留少量';
             result.needFollowUp = false;
             result.followUpQuestion = '';
         }
