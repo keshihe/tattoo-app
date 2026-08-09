@@ -1,7 +1,7 @@
 (function (global) {
     'use strict';
 
-    const GEMINI_API_KEY = 'AQ.Ab8RN6LUGd2Mtt3s_TjofQUHt_ocQfsizfbtBCLndAhwoeOsVQ';
+    const GEMINI_API_KEY = 'AQ.Ab8RN6Lrr-ZZngig6ZEG9sEVGC0EV7Q_QHsNcDUB_OtLQwv5pw';
     const GEMINI_MODEL = 'gemini-2.0-flash';
     const GEMINI_TIMEOUT_MS = 8000;
     const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
