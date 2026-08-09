@@ -1,10 +1,10 @@
 (function (global) {
     'use strict';
 
-    const GEMINI_API_KEY = 'AQ.Ab8RN6Lrr-ZZngig6ZEG9sEVGC0EV7Q_QHsNcDUB_OtLQwv5pw';
-    const GEMINI_MODEL = 'gemini-2.0-flash';
-    const GEMINI_TIMEOUT_MS = 8000;
-    const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+    /* ================================================================
+     * 纯像素引擎 - 改进版
+     * 无需外部 API，浏览器端 Canvas 分析
+     * ================================================================ */
 
     const colorNames = {
         black: '黑色/黑灰',
@@ -16,69 +16,163 @@
         cyan: '青色',
         blue: '蓝色',
         purple: '紫色',
-        magenta: '品红'
+        magenta: '品红',
+        white: '白色'
     };
 
     function numberOr(value, fallback) {
         return Number.isFinite(value) ? value : fallback;
     }
 
+    /* ---------- 工具函数 ---------- */
+
+    // RGB → HSV（0-360, 0-1, 0-1）
+    function rgbToHsv(r, g, b) {
+        r /= 255; g /= 255; b /= 255;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        const delta = max - min;
+        let h = 0;
+        if (delta !== 0) {
+            if (max === r) h = ((g - b) / delta) % 6;
+            else if (max === g) h = (b - r) / delta + 2;
+            else h = (r - g) / delta + 4;
+        }
+        h = Math.round(h * 60);
+        if (h < 0) h += 360;
+        const s = max === 0 ? 0 : delta / max;
+        const v = max;
+        return [h, s, v];
+    }
+
+    // 灰度亮度（感知加权）
+    function luminance(r, g, b) {
+        return 0.299 * r + 0.587 * g + 0.114 * b;
+    }
+
+    /* ---------- 多肤色范围皮肤检测 ---------- */
+    function isSkinPixel(h, s, v) {
+        // 排除极端值
+        if (v < 0.18 || v > 0.96) return false;
+        if (s > 0.62 && v > 0.35) return false; // 高饱和排除
+
+        // 暖色皮肤范围 (亚洲/白种人)
+        if (h >= 5 && h <= 46 && s >= 0.03 && s <= 0.58 && v >= 0.22) return true;
+
+        // 深色皮肤范围
+        if (h >= 3 && h <= 50 && s >= 0.08 && s <= 0.50 && v >= 0.10 && v <= 0.45) return true;
+
+        // 中性/灰色范围 (非常浅的皮肤)
+        if (s <= 0.12 && v >= 0.45 && v <= 0.95) return true;
+
+        return false;
+    }
+
+    /* ---------- 像素颜色分类 ---------- */
+    function classifyPixelColor(h, s, v) {
+        // 黑色/深灰：低亮度 + 低饱和
+        if (v < 0.32 && s < 0.35) return 'black';
+        if (v < 0.22) return 'black';  // 极暗
+
+        // 暗色但偏色 → 褪色黑灰
+        if (v < 0.45 && s < 0.25) return 'faded_black';
+
+        // 彩色识别
+        if (s < 0.20) return 'faded_black';  // 低饱和 → 灰调
+
+        // 红色 (0-14 或 345-360)
+        if ((h <= 14 || h >= 345) && s > 0.25 && v > 0.10 && v < 0.80)
+            return 'red';
+
+        // 橙色/棕色 (14-45)
+        if (h > 14 && h <= 45 && s > 0.30 && v > 0.10 && v < 0.80)
+            return 'orange';
+
+        // 黄色 (45-70)
+        if (h > 45 && h <= 70 && s > 0.30 && v > 0.15 && v < 0.85)
+            return 'yellow';
+
+        // 绿色 (70-160)
+        if (h > 70 && h <= 160 && s > 0.20 && v > 0.08 && v < 0.82)
+            return 'green';
+
+        // 青色 (160-200)
+        if (h > 160 && h <= 200 && s > 0.20 && v > 0.08 && v < 0.82)
+            return 'cyan';
+
+        // 蓝色 (200-260)
+        if (h > 200 && h <= 260 && s > 0.20 && v > 0.08 && v < 0.82)
+            return 'blue';
+
+        // 紫色 (260-300)
+        if (h > 260 && h <= 300 && s > 0.20 && v > 0.08 && v < 0.80)
+            return 'purple';
+
+        // 品红 (300-345)
+        if (h > 300 && h < 345 && s > 0.20 && v > 0.08 && v < 0.80)
+            return 'magenta';
+
+        // 白色/高亮（高亮+低饱和→可能是疤痕或高光）
+        if (v > 0.90 && s < 0.15) return 'white';
+
+        return 'faded_black';
+    }
+
+    /* ---------- 像素级分析（保持旧接口兼容） ---------- */
     function classifyPixel(input) {
         const hue = numberOr(input.hue, 0);
         const sat = numberOr(input.sat, 0);
         const val = numberOr(input.val, 0);
-        const skinMeanV = numberOr(input.skinMeanV, 0.55);
-        const localMeanV = numberOr(input.localMeanV, skinMeanV);
-        const localMeanS = numberOr(input.localMeanS, sat);
-        const localSkinCount = numberOr(input.localSkinCount, 1);
-        const wideMeanV = numberOr(input.wideMeanV, skinMeanV);
-        const localDarkness = localMeanV - val;
-        const wideDarkness = wideMeanV - val;
-        const localColorContrast = sat - localMeanS;
         const isSkinPixel = Boolean(input.isSkinPixel);
+        const localSkinCount = numberOr(input.localSkinCount, 0);
         const hasLocalSkin = localSkinCount > 0;
-        const isHighlight = (val > 0.91 && sat < 0.1) ||
-            (val > skinMeanV + 0.14 && sat < 0.12);
 
-        if (isHighlight && Boolean(input.isSkinPixel)) {
-            return { isInk: false, isScar: true, color: null };
-        }
-
-        const isDarkInk = !isSkinPixel && hasLocalSkin && ((val < 0.36 &&
-            wideDarkness > 0.12 && localDarkness > 0.1) ||
-            (val < 0.44 && sat < 0.22 && wideDarkness > 0.14 && localDarkness > 0.1));
-        const isRed = !isSkinPixel && hasLocalSkin && ((hue < 14 && hue >= 0) || hue >= 350) &&
-            sat > 0.35 && localColorContrast > 0.08 && val < 0.72;
-        const isOrange = !isSkinPixel && hasLocalSkin && hue >= 14 && hue < 45 &&
-            sat > 0.46 && localColorContrast > 0.14 && val < 0.72;
-        const isChromatic = !isSkinPixel && hasLocalSkin && sat > 0.46 &&
-            localColorContrast > 0.16 && val > 0.1 && val < 0.8;
-
-        if (!isDarkInk && !isRed && !isOrange && !isChromatic) {
+        // 跳过皮肤像素
+        if (isSkinPixel) {
+            // 高亮皮肤可能是疤痕
+            if (val > 0.90 && sat < 0.13) {
+                return { isInk: false, isScar: true, color: null };
+            }
             return { isInk: false, isScar: false, color: null };
         }
 
-        let color = 'faded_black';
-        if (isRed) color = 'red';
-        else if (isOrange) color = 'orange';
-        else if (isChromatic && hue >= 45 && hue < 75) color = 'yellow';
-        else if (isChromatic && hue >= 75 && hue < 155) color = 'green';
-        else if (isChromatic && hue >= 155 && hue < 195) color = 'cyan';
-        else if (isChromatic && hue >= 195 && hue < 255) color = 'blue';
-        else if (isChromatic && hue >= 255 && hue < 310) color = 'purple';
-        else if (isChromatic && hue >= 310 && hue < 350) color = 'magenta';
-        else if (val < 0.36 || sat < 0.3) color = 'black';
+        // 周围没有皮肤 → 可能是背景/衣物，降低置信度
+        if (!hasLocalSkin) {
+            return { isInk: false, isScar: false, color: null };
+        }
 
-        return { isInk: true, isScar: false, color };
+        const color = classifyPixelColor(hue, sat, val);
+
+        // 白色/极亮 → 可能是疤痕或高光
+        if (color === 'white') {
+            return { isInk: false, isScar: true, color: null };
+        }
+
+        const isInk = color !== 'faded_black' || (val < 0.35 && sat < 0.18);
+
+        return {
+            isInk,
+            isScar: false,
+            color: isInk ? color : null
+        };
     }
 
+    /* ---------- 改进版 summarization ---------- */
     function createSceneWarning(scene) {
         const skinCoverage = numberOr(scene && scene.skinCoverage, 1);
         const edgeBackgroundRatio = numberOr(scene && scene.edgeBackgroundRatio, 0);
         const nonSkinRegionRatio = numberOr(scene && scene.nonSkinRegionRatio, 0);
+        const totalSkinPixels = numberOr(scene && scene.totalSkinPixels, 1);
+        const inkPixels = numberOr(scene && scene.inkPixels, 0);
 
-        if (skinCoverage < 0.35 || edgeBackgroundRatio > 0.45 || nonSkinRegionRatio > 0.65) {
+        // 场景复杂度判断
+        if (skinCoverage < 0.25 && totalSkinPixels < 15000) {
+            return '皮肤区域过小，请拍摄近距离、无遮挡的纹身照片';
+        }
+        if (edgeBackgroundRatio > 0.50 || nonSkinRegionRatio > 0.70) {
             return '背景较复杂，请使用单张、近距离、无遮挡的纹身照片';
+        }
+        if (skinCoverage < 0.30 && inkPixels < totalSkinPixels * 0.003) {
+            return '未检测到明显皮肤区域，请确保照片包含纹身';
         }
         return null;
     }
@@ -89,90 +183,139 @@
         const dominantInkPixels = Math.max(0, Math.round(numberOr(metrics.dominantInkPixels, 0)));
         const scarPixels = Math.max(0, Math.round(numberOr(metrics.scarPixels, 0)));
         const scarEvidence = numberOr(metrics.scarEvidence, 0);
+
         const inkCoverage = inkPixels / totalRoiPixels;
         const dominantCoverage = dominantInkPixels / totalRoiPixels;
         const inkFootprintCoverage = Math.max(0, numberOr(metrics.inkFootprintCoverage, dominantCoverage));
-        const dominantRatio = inkPixels > 0 ? dominantInkPixels / inkPixels : 0;
-        const sceneWarning = createSceneWarning(metrics.scene);
-        const stableInk = dominantInkPixels >= Math.max(30, totalRoiPixels * 0.0015) &&
-            (inkCoverage >= 0.006 || dominantCoverage >= 0.004) &&
-            dominantRatio >= 0.18;
-        const redPixels = numberOr(metrics.colorCounts && metrics.colorCounts.red, 0);
-        const redRatio = inkPixels > 0 ? redPixels / inkPixels : 0;
-        const stableRed = stableInk && redPixels >= Math.max(80, totalRoiPixels * 0.003) && redRatio >= 0.12;
 
+        const sceneWarning = createSceneWarning(metrics.scene || {});
+
+        // 稳定性判断：至少有足够数量的墨水像素
+        const minInkPixels = Math.max(20, totalRoiPixels * 0.001);
+        const stableInk = inkPixels >= minInkPixels && inkCoverage >= 0.003;
+
+        // 颜色统计 - 使用加权计数
+        const colorCounts = metrics.colorCounts || {};
+        const totalColorPixels = Object.values(colorCounts).reduce((a, b) => a + b, 0) || 1;
+
+        // 构建颜色排名
+        const sortedColors = Object.entries(colorCounts)
+            .map(([color, count]) => ({ color, count, ratio: count / totalColorPixels }))
+            .sort((a, b) => b.count - a.count);
+
+        // 主色：占比最高的颜色
+        const dominantColor = sortedColors[0] || null;
+        const dominantRatio = dominantColor ? dominantColor.ratio : 0;
+
+        // 判断是否多色（第二颜色占比 > 15%）
+        const isMultiColor = sortedColors.length >= 2 && sortedColors[1].ratio >= 0.15;
+
+        // 颜色类型描述
         let colorType = '未检测到明显纹身色素';
         const selectedColors = [];
-        if (stableInk) {
-            const sortedColors = Object.entries(metrics.colorCounts || {})
-                .sort((a, b) => b[1] - a[1]);
-            for (const [color, count] of sortedColors) {
-                const ratio = inkPixels > 0 ? count / inkPixels : 0;
-                const minimumRatio = color === 'red' ? 0.12 : color === 'orange' ? 0.18 : 0.14;
-                if (ratio >= minimumRatio && (color !== 'red' || stableRed)) {
-                    selectedColors.push(colorNames[color] || color);
+
+        if (stableInk && sortedColors.length > 0) {
+            // 取主要颜色（占比 > 12%）
+            for (const c of sortedColors) {
+                if (c.ratio >= 0.12 && selectedColors.length < 3) {
+                    selectedColors.push(colorNames[c.color] || c.color);
                 }
-                if (selectedColors.length === 2) break;
             }
-            if (selectedColors.length === 0) {
-                const firstColor = Object.entries(metrics.colorCounts || {})
-                    .sort((a, b) => b[1] - a[1])[0];
-                if (firstColor) selectedColors.push(colorNames[firstColor[0]] || firstColor[0]);
+            if (selectedColors.length === 0 && sortedColors[0].ratio >= 0.05) {
+                selectedColors.push(colorNames[sortedColors[0].color] || sortedColors[0].color);
             }
             colorType = selectedColors.length > 0 ? selectedColors.join(' + ') : colorType;
-            if (selectedColors.some(color => color.includes('黑')) && stableRed && redRatio >= 0.25) {
-                colorType = '黑灰 + 红色残留';
-            }
         }
 
+        // 覆盖面积标签
         let coverageLabel = '几乎无';
         if (stableInk) {
-            if (inkCoverage < 0.06 && inkFootprintCoverage < 0.08) coverageLabel = '小面积';
-            else if (inkCoverage < 0.14 && inkFootprintCoverage < 0.18) coverageLabel = '中等面积';
-            else if (inkCoverage < 0.24 && inkFootprintCoverage < 0.35) coverageLabel = '较大面积';
+            const footprint = Math.max(inkCoverage, inkFootprintCoverage);
+            if (footprint < 0.04) coverageLabel = '小面积';
+            else if (footprint < 0.12) coverageLabel = '中等面积';
+            else if (footprint < 0.22) coverageLabel = '较大面积';
             else coverageLabel = '大面积';
         }
 
-        const uncertainScene = !stableInk && Boolean(sceneWarning) && dominantCoverage < 0.015 && redRatio < 0.2;
+        // 不确定场景
+        const uncertainScene = !stableInk && Boolean(sceneWarning) && dominantCoverage < 0.01;
         if (uncertainScene) {
             colorType = '未检测到稳定纹身色素';
             coverageLabel = '照片复杂，无法判断';
         }
 
-        const skinCondition = scarEvidence >= 0.5 && scarPixels / totalRoiPixels >= 0.015
-            ? '疑似疤痕/色差'
-            : '未见明显异常（照片无法完全判断）';
-
-        const significantColorCount = selectedColors.length;
-        let difficultyMod = 0;
-        const averageBrightness = numberOr(metrics.avgBrightness, 0.5);
-        if (stableInk) {
-            if (['yellow', 'green'].some(color => numberOr(metrics.colorCounts && metrics.colorCounts[color], 0) / inkPixels >= 0.08)) difficultyMod += 8;
-            if (numberOr(metrics.colorCounts && metrics.colorCounts.blue, 0) / inkPixels >= 0.08) difficultyMod += 3;
-            if (stableRed && redRatio >= 0.08) difficultyMod += 2;
-            if (['purple', 'magenta'].some(color => numberOr(metrics.colorCounts && metrics.colorCounts[color], 0) / inkPixels >= 0.08)) difficultyMod += 4;
-            if (significantColorCount > 1) difficultyMod += 5;
-            if (averageBrightness < 0.22) difficultyMod += 3;
-            if (inkCoverage > 0.3) difficultyMod += 3;
+        // 皮肤状态（疤痕检测）
+        const scarRatio = scarPixels / totalRoiPixels;
+        let skinCondition = '未见明显异常（照片无法完全判断）';
+        if (scarEvidence >= 0.4 && scarRatio >= 0.008) {
+            skinCondition = '疑似疤痕/色差';
+        } else if (scarEvidence >= 0.6 && scarRatio >= 0.004) {
+            skinCondition = '疑似疤痕/色差';
         }
-        if (scarEvidence >= 0.68 && scarPixels / totalRoiPixels >= 0.03) difficultyMod += 2;
 
-        const confidence = sceneWarning ? 'low' : stableInk || inkCoverage < 0.006 ? 'high' : 'medium';
+        // 难度修正
+        let difficultyMod = 0;
+        if (stableInk) {
+            // 颜色难度
+            const redRatio = (colorCounts.red || 0) / totalColorPixels;
+            const greenRatio = (colorCounts.green || 0) / totalColorPixels;
+            const yellowRatio = (colorCounts.yellow || 0) / totalColorPixels;
+            const blueRatio = (colorCounts.blue || 0) / totalColorPixels;
+            const purpleRatio = (colorCounts.purple || 0) / totalColorPixels;
+            const magentaRatio = (colorCounts.magenta || 0) / totalColorPixels;
+
+            if (yellowRatio >= 0.08 || greenRatio >= 0.08) difficultyMod += 8;
+            if (blueRatio >= 0.08) difficultyMod += 3;
+            if (redRatio >= 0.08) difficultyMod += 2;
+            if (purpleRatio >= 0.08 || magentaRatio >= 0.08) difficultyMod += 4;
+            if (isMultiColor) difficultyMod += 5;
+
+            // 覆盖面积难度
+            if (inkCoverage > 0.25) difficultyMod += 3;
+            else if (inkCoverage > 0.15) difficultyMod += 2;
+            else if (inkCoverage > 0.08) difficultyMod += 1;
+
+            // 密度难度（基于平均亮度）
+            const avgBrightness = numberOr(metrics.avgBrightness, 0.55);
+            if (avgBrightness < 0.20) difficultyMod += 3;
+            else if (avgBrightness < 0.30) difficultyMod += 2;
+            else if (avgBrightness < 0.40) difficultyMod += 1;
+        }
+        if (scarRatio >= 0.02) difficultyMod += 2;
+
+        // 置信度
+        const confidence = sceneWarning ? 'low' : (stableInk || inkCoverage < 0.003 ? 'high' : 'medium');
+
+        // 密度标签
+        const avgBrightness = numberOr(metrics.avgBrightness, 0.55);
+        const densityLabel = stableInk
+            ? (avgBrightness < 0.18 ? '色素很深'
+                : avgBrightness < 0.28 ? '色素较深'
+                : avgBrightness < 0.45 ? '色素适中'
+                : avgBrightness < 0.60 ? '色素较浅'
+                : '色素已基本清除')
+            : '色素适中';
+
         return {
             colorType,
             coverageLabel,
             skinCondition,
-            difficultyMod,
+            difficultyMod: Math.min(20, Math.max(0, difficultyMod)),
             confidence,
             sceneWarning,
             inkCoverage,
             dominantCoverage,
             inkFootprintCoverage,
-            redCoverage: redRatio,
-            scarEvidence
+            redCoverage: (colorCounts.red || 0) / totalColorPixels,
+            scarEvidence,
+            densityLabel,
+            isMultiColor,
+            inkCoveragePct: Math.min(100, Math.round(inkCoverage * 100)),
+            colors: sortedColors.slice(0, 3).map(c => c.color)
         };
     }
 
+    /* ---------- 其他保持兼容 ---------- */
     function summarizeSelections(steps, answers) {
         return (steps || []).map((step, stepIndex) => {
             const selected = Array.isArray(answers && answers[stepIndex]) ? answers[stepIndex] : [];
@@ -199,104 +342,17 @@
             ? '已结合照片和你填写的信息进行初步判断。'
             : '以下内容来自你填写的信息，建议补充清晰的纹身照片。';
         if (hasConditionConcern && photoAnalysis) {
-            text += '你勾选了皮肤状态相关情况，即使照片看起来正常，也建议师傅重点复核。';
+            text += '你勾选了皮肤状态相关情况，即使照片看起来正常，建议师傅重点复核。';
         }
         return { hasConditionConcern, text };
     }
 
-    const GEMINI_ANALYSIS_PROMPT = `You are a professional tattoo removal specialist analyzing a tattoo photo. Examine the image carefully and return ONLY a JSON object (no markdown, no explanation) with these fields:
-
-{
-  "colors": ["black", "red", "blue", ...],  // list of detected ink colors from: black, dark_blue, red, orange, yellow, green, cyan, blue, purple, magenta, white. Use "black" for all dark/black/grey ink. Always include at least one color.
-  "colorType": "黑色 + 红色",  // Chinese display string for main colors, e.g. "黑色/黑灰", "黑灰 + 红色残留", "彩色(蓝+绿)"
-  "coverageLabel": "小面积",  // one of: "几乎无", "小面积", "中等面积", "较大面积", "大面积"
-  "coveragePercent": 12,  // estimated percentage of skin area covered by tattoo ink (0-100)
-  "densityLabel": "色素适中",  // one of: "色素已基本清除", "色素较浅", "色素适中", "色素较深", "色素很深"
-  "skinCondition": "未见明显异常",  // describe any scarring, discoloration, or skin damage visible
-  "hasScarring": false,  // true if scars or skin texture changes are visible
-  "difficultyMod": 5,  // estimated removal difficulty bonus 0-20, higher = harder. Consider: colors (multi-color +5, yellow/green +8, red +2, blue +3, purple +4), coverage (>30% +3), density (dark +3), scarring (+2)
-  "sceneWarning": null,  // null if photo is good quality close-up of a single tattoo. String warning if photo has distracting background, multiple tattoos, too far away, or poor lighting.
-  "confidence": "high",  // "high" if photo is clear and analysis reliable, "medium" if somewhat ambiguous, "low" if photo quality is poor
-  "isMultiColor": false  // true if more than one distinct ink color detected
-}
-
-Rules:
-- Be conservative: if uncertain about a color, don't include it.
-- For coverage, consider the tattoo's size relative to the visible skin area in the photo.
-- If the photo background is cluttered or contains non-tattoo elements, set sceneWarning.
-- densityLabel should reflect how saturated/dark the ink appears.
-- difficultyMod should be based on standard tattoo removal knowledge (colors, size, density, scarring).`;
-
-    async function analyzeWithGemini(imageDataUrl) {
-        const base64Data = imageDataUrl.replace(/^data:image\/\w+;base64,/, '');
-
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
-
-        try {
-            const response = await fetch(GEMINI_ENDPOINT, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [
-                            { text: GEMINI_ANALYSIS_PROMPT },
-                            { inlineData: { mimeType: 'image/jpeg', data: base64Data } }
-                        ]
-                    }],
-                    generationConfig: {
-                        temperature: 0.1,
-                        maxOutputTokens: 500
-                    }
-                }),
-                signal: controller.signal
-            });
-
-            clearTimeout(timeoutId);
-
-            if (!response.ok) {
-                throw new Error(`Gemini API error: ${response.status}`);
-            }
-
-            const data = await response.json();
-            const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (!text) throw new Error('Empty Gemini response');
-
-            // Extract JSON from response (handle markdown code blocks)
-            let jsonStr = text.trim();
-            const jsonMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-            if (jsonMatch) jsonStr = jsonMatch[1];
-            else {
-                const bracketMatch = jsonStr.match(/\{[\s\S]*\}/);
-                if (bracketMatch) jsonStr = bracketMatch[0];
-            }
-
-            const result = JSON.parse(jsonStr);
-
-            // Validate and normalize
-            const validCoverageLabels = ['几乎无', '小面积', '中等面积', '较大面积', '大面积'];
-            const validDensityLabels = ['色素已基本清除', '色素较浅', '色素适中', '色素较深', '色素很深'];
-
-            return {
-                colorType: String(result.colorType || '未检测到明显纹身色素'),
-                coverageLabel: validCoverageLabels.includes(result.coverageLabel) ? result.coverageLabel : '小面积',
-                skinCondition: String(result.skinCondition || '未见明显异常'),
-                difficultyMod: Math.min(20, Math.max(0, Number.isFinite(result.difficultyMod) ? Math.round(result.difficultyMod) : 0)),
-                confidence: ['high', 'medium', 'low'].includes(result.confidence) ? result.confidence : 'medium',
-                sceneWarning: result.sceneWarning || null,
-                densityLabel: validDensityLabels.includes(result.densityLabel) ? result.densityLabel : '色素适中',
-                isMultiColor: Boolean(result.isMultiColor),
-                inkCoveragePct: Math.min(100, Math.max(0, Number.isFinite(result.coveragePercent) ? Math.round(result.coveragePercent) : 0)),
-                colors: Array.isArray(result.colors) ? result.colors : [],
-                hasScarring: Boolean(result.hasScarring)
-            };
-        } catch (err) {
-            clearTimeout(timeoutId);
-            console.warn('Gemini analysis failed, falling back to rule engine:', err.message);
-            return null;
-        }
+    /* ---------- Gemini 接口已废弃，直接返回 null ---------- */
+    async function analyzeWithGemini() {
+        return null;
     }
 
+    /* ---------- 导出 ---------- */
     global.TattooAnalysisCore = {
         classifyPixel,
         summarizeMetrics,
