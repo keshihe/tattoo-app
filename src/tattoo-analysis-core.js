@@ -137,16 +137,18 @@
             return { isInk: false, isScar: false, color: null };
         }
 
-        // 关键：周围皮肤密度不足 → 衣物/背景边界，排除
-        // 纹身墨水被皮肤包围（高密度），衣物仅单侧贴皮肤（低密度）
+        // 关键：周围皮肤密度不足 → 衣物/背景边界/皮肤纹理，排除
+        // 纹身墨水被皮肤包围（高密度），衣物/纹理仅局部贴皮肤（低密度）
+        // 实测：干净皮肤误检像素 avg_lsc≈15(30%)，真纹身边缘 avg_lsc≈35+(70%)
         const skinDensity = localSkinCount / LOCAL_WINDOW_SIZE;
-        if (localSkinCount < 8 || skinDensity < 0.16) {
+        if (localSkinCount < 25 || skinDensity < 0.50) {
             return { isInk: false, isScar: false, color: null };
         }
 
-        // 关键：必须比周围皮肤显著更深，排除阴影和深色衣物
+        // 关键：必须比周围皮肤显著更深，排除阴影/皮肤纹理/浅色衣物
+        // 实测：干净皮肤纹理 darkness≈0.05-0.09，真纹身 ink darkness≈0.15-0.35
         const darkness = localMeanV - val;
-        if (darkness < 0.07) {
+        if (darkness < 0.10) {
             return { isInk: false, isScar: false, color: null };
         }
 
