@@ -118,7 +118,7 @@
     }
 
     /* ---------- 像素级分析 ---------- */
-    function classifyPixel(input) {
+    function classifyPixel(input, calibration = {}) {
         const hue = numberOr(input.hue, 0);
         const sat = numberOr(input.sat, 0);
         const val = numberOr(input.val, 0);
@@ -131,7 +131,7 @@
 
         // 跳过皮肤像素
         if (isSkinPixel) {
-            if (val > 0.90 && sat < 0.13) {
+            if (val > scarThreshold && sat < 0.13) {
                 return { isInk: false, isScar: true, color: null };
             }
             return { isInk: false, isScar: false, color: null };
@@ -141,14 +141,32 @@
         // 纹身墨水被皮肤包围（高密度），衣物/纹理仅局部贴皮肤（低密度）
         // 实测：干净皮肤误检像素 avg_lsc≈15(30%)，真纹身边缘 avg_lsc≈35+(70%)
         const skinDensity = localSkinCount / LOCAL_WINDOW_SIZE;
-        if (localSkinCount < 25 || skinDensity < 0.50) {
+
+        // 根据 calibration 调整阈值
+        let skinDensityThreshold = 0.50;
+        let darknessThreshold = 0.10;
+        let scarThreshold = 0.90;
+
+        if (calibration.strictMode) {
+            skinDensityThreshold = 0.60;
+            darknessThreshold = 0.12;
+        } else if (calibration.relaxedMode) {
+            skinDensityThreshold = 0.35;
+            darknessThreshold = 0.06;
+        }
+
+        if (calibration.scarWeight && calibration.scarWeight > 0) {
+            scarThreshold = 0.90 - calibration.scarWeight * 0.03;
+        }
+
+        if (localSkinCount < 25 || skinDensity < skinDensityThreshold) {
             return { isInk: false, isScar: false, color: null };
         }
 
         // 关键：必须比周围皮肤显著更深，排除阴影/皮肤纹理/浅色衣物
         // 实测：干净皮肤纹理 darkness≈0.05-0.09，真纹身 ink darkness≈0.15-0.35
         const darkness = localMeanV - val;
-        if (darkness < 0.10) {
+        if (darkness < darknessThreshold) {
             return { isInk: false, isScar: false, color: null };
         }
 
@@ -363,6 +381,89 @@
         return null;
     }
 
+    /* ---------- 问卷校准 ---------- */
+    function getRecommendedThresholds(questionnaire) {
+        const q = questionnaire || {};
+        const calibration = {};
+
+        // strictMode: 从未治疗 + 纯黑
+        if (q.treatments === 'never' && q.inkColor === 'black') {
+            calibration.strictMode = true;
+        }
+
+        // relaxedMode: 已治疗4次以上 + 彩色
+        if (q.treatments === '4_plus' && q.inkColor === 'colorful') {
+            calibration.relaxedMode = true;
+        }
+
+        // scarWeight: 有疤痕 → 敏感度 0.7
+        if (q.hasScar === 'yes') {
+            calibration.scarWeight = 0.7;
+        }
+
+        return calibration;
+    }
+
+    /* ---------- 交叉验证 ---------- */
+    function crossValidate(analysisResult, questionnaire) {
+        const result = Object.assign({}, analysisResult);
+        const q = questionnaire || {};
+        const hasQuestionnaire = !!(q.duration || q.treatments || q.hasScar || q.inkColor);
+
+        if (!hasQuestionnaire) {
+            result.crossCheckNote = '未填写问卷，仅基于图片分析';
+            result.needFollowUp = (result.confidence === 'low');
+            result.followUpQuestion = result.needFollowUp ? '这张照片光线不太好，请问您之前洗过这个纹身吗？' : '';
+            return result;
+        }
+
+        // 交叉验证逻辑
+        const hasDeepInk = result.densityLabel === '色素很深' || result.densityLabel === '色素较深';
+        const hasNoInk = result.colorType && result.colorType.includes('未检测到');
+        const hasSignificantInk = result.inkCoveragePct >= 5 || result.coverageLabel === '中等面积' || result.coverageLabel === '较大面积' || result.coverageLabel === '大面积';
+
+        // 1. 从未治疗 + 图片大量深色 → high
+        if (q.treatments === 'never' && hasDeepInk) {
+            result.confidence = 'high';
+            result.crossCheckNote = '问卷与图片分析一致：从未治疗，图片显示色素较深，评估可靠';
+            result.needFollowUp = false;
+            result.followUpQuestion = '';
+        }
+        // 2. 已治疗4次以上 + 图片少量 → high（确认为残留）
+        else if (q.treatments === '4_plus' && (result.inkCoveragePct < 10 || result.coverageLabel === '小面积')) {
+            result.confidence = 'high';
+            result.crossCheckNote = '问卷与图片分析一致：已治疗多次，图片仅剩少量边缘色素，确认为残留';
+            result.needFollowUp = false;
+            result.followUpQuestion = '';
+        }
+        // 3. 从未治疗 + 图片未检出 → medium
+        else if (q.treatments === 'never' && hasNoInk) {
+            result.confidence = 'medium';
+            result.crossCheckNote = '问卷显示从未治疗，但图片未检出明显色素，可能受光线/角度影响';
+            result.needFollowUp = true;
+            result.followUpQuestion = '照片中未能清晰识别纹身，请问您之前洗过这个纹身吗？';
+        }
+        // 4. 问卷显示简单案件 + 图片检出大量 → low
+        else if (q.treatments === 'never' && q.inkColor === 'black' && q.hasScar !== 'yes' && hasSignificantInk) {
+            result.confidence = 'high';
+            result.crossCheckNote = '问卷与图片分析一致：纯黑纹身，从未治疗，色素明显';
+            result.needFollowUp = false;
+            result.followUpQuestion = '';
+        }
+        // 5. 有问卷但无特殊匹配 → 保持原置信度，但在备注中说明
+        else {
+            // 默认：如果图片分析本身置信度不高且有问卷补充，提升到 medium
+            if (result.confidence === 'low' && hasQuestionnaire) {
+                result.confidence = 'medium';
+            }
+            result.crossCheckNote = '已结合你填写的问卷信息与图片分析结果';
+            result.needFollowUp = (result.confidence === 'low');
+            result.followUpQuestion = result.needFollowUp ? '这张照片光线不太好，请问您之前洗过这个纹身吗？' : '';
+        }
+
+        return result;
+    }
+
     /* ---------- 导出 ---------- */
     global.TattooAnalysisCore = {
         classifyPixel,
@@ -370,6 +471,8 @@
         createSceneWarning,
         summarizeSelections,
         buildCombinedInsight,
-        analyzeWithGemini
+        analyzeWithGemini,
+        crossValidate,
+        getRecommendedThresholds
     };
 })(typeof window !== 'undefined' ? window : globalThis);
