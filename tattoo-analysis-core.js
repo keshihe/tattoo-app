@@ -1,9 +1,10 @@
 (function (global) {
     'use strict';
 
+    const GEMINI_API_KEY = 'AQ.Ab8RN6LUGd2Mtt3s_TjofQUHt_ocQfsizfbtBCLndAhwoeOsVQ';
     const GEMINI_MODEL = 'gemini-2.0-flash';
     const GEMINI_TIMEOUT_MS = 8000;
-    const GEMINI_ENDPOINT_BASE = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+    const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
     const colorNames = {
         black: '黑色/黑灰',
@@ -226,14 +227,14 @@ Rules:
 - densityLabel should reflect how saturated/dark the ink appears.
 - difficultyMod should be based on standard tattoo removal knowledge (colors, size, density, scarring).`;
 
-    async function analyzeWithGemini(imageDataUrl, apiKey) {
+    async function analyzeWithGemini(imageDataUrl) {
         const base64Data = imageDataUrl.replace(/^data:image\/\w+;base64,/, '');
 
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
 
         try {
-            const response = await fetch(`${GEMINI_ENDPOINT_BASE}?key=${apiKey}`, {
+            const response = await fetch(GEMINI_ENDPOINT, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
