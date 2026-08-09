@@ -1,6 +1,10 @@
 (function (global) {
     'use strict';
 
+    const GEMINI_MODEL = 'gemini-2.0-flash';
+    const GEMINI_TIMEOUT_MS = 8000;
+    const GEMINI_ENDPOINT_BASE = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+
     const colorNames = {
         black: '黑色/黑灰',
         faded_black: '褪色黑灰',
@@ -199,11 +203,105 @@
         return { hasConditionConcern, text };
     }
 
+    const GEMINI_ANALYSIS_PROMPT = `You are a professional tattoo removal specialist analyzing a tattoo photo. Examine the image carefully and return ONLY a JSON object (no markdown, no explanation) with these fields:
+
+{
+  "colors": ["black", "red", "blue", ...],  // list of detected ink colors from: black, dark_blue, red, orange, yellow, green, cyan, blue, purple, magenta, white. Use "black" for all dark/black/grey ink. Always include at least one color.
+  "colorType": "黑色 + 红色",  // Chinese display string for main colors, e.g. "黑色/黑灰", "黑灰 + 红色残留", "彩色(蓝+绿)"
+  "coverageLabel": "小面积",  // one of: "几乎无", "小面积", "中等面积", "较大面积", "大面积"
+  "coveragePercent": 12,  // estimated percentage of skin area covered by tattoo ink (0-100)
+  "densityLabel": "色素适中",  // one of: "色素已基本清除", "色素较浅", "色素适中", "色素较深", "色素很深"
+  "skinCondition": "未见明显异常",  // describe any scarring, discoloration, or skin damage visible
+  "hasScarring": false,  // true if scars or skin texture changes are visible
+  "difficultyMod": 5,  // estimated removal difficulty bonus 0-20, higher = harder. Consider: colors (multi-color +5, yellow/green +8, red +2, blue +3, purple +4), coverage (>30% +3), density (dark +3), scarring (+2)
+  "sceneWarning": null,  // null if photo is good quality close-up of a single tattoo. String warning if photo has distracting background, multiple tattoos, too far away, or poor lighting.
+  "confidence": "high",  // "high" if photo is clear and analysis reliable, "medium" if somewhat ambiguous, "low" if photo quality is poor
+  "isMultiColor": false  // true if more than one distinct ink color detected
+}
+
+Rules:
+- Be conservative: if uncertain about a color, don't include it.
+- For coverage, consider the tattoo's size relative to the visible skin area in the photo.
+- If the photo background is cluttered or contains non-tattoo elements, set sceneWarning.
+- densityLabel should reflect how saturated/dark the ink appears.
+- difficultyMod should be based on standard tattoo removal knowledge (colors, size, density, scarring).`;
+
+    async function analyzeWithGemini(imageDataUrl, apiKey) {
+        const base64Data = imageDataUrl.replace(/^data:image\/\w+;base64,/, '');
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
+
+        try {
+            const response = await fetch(`${GEMINI_ENDPOINT_BASE}?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [
+                            { text: GEMINI_ANALYSIS_PROMPT },
+                            { inlineData: { mimeType: 'image/jpeg', data: base64Data } }
+                        ]
+                    }],
+                    generationConfig: {
+                        temperature: 0.1,
+                        maxOutputTokens: 500
+                    }
+                }),
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                throw new Error(`Gemini API error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (!text) throw new Error('Empty Gemini response');
+
+            // Extract JSON from response (handle markdown code blocks)
+            let jsonStr = text.trim();
+            const jsonMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+            if (jsonMatch) jsonStr = jsonMatch[1];
+            else {
+                const bracketMatch = jsonStr.match(/\{[\s\S]*\}/);
+                if (bracketMatch) jsonStr = bracketMatch[0];
+            }
+
+            const result = JSON.parse(jsonStr);
+
+            // Validate and normalize
+            const validCoverageLabels = ['几乎无', '小面积', '中等面积', '较大面积', '大面积'];
+            const validDensityLabels = ['色素已基本清除', '色素较浅', '色素适中', '色素较深', '色素很深'];
+
+            return {
+                colorType: String(result.colorType || '未检测到明显纹身色素'),
+                coverageLabel: validCoverageLabels.includes(result.coverageLabel) ? result.coverageLabel : '小面积',
+                skinCondition: String(result.skinCondition || '未见明显异常'),
+                difficultyMod: Math.min(20, Math.max(0, Number.isFinite(result.difficultyMod) ? Math.round(result.difficultyMod) : 0)),
+                confidence: ['high', 'medium', 'low'].includes(result.confidence) ? result.confidence : 'medium',
+                sceneWarning: result.sceneWarning || null,
+                densityLabel: validDensityLabels.includes(result.densityLabel) ? result.densityLabel : '色素适中',
+                isMultiColor: Boolean(result.isMultiColor),
+                inkCoveragePct: Math.min(100, Math.max(0, Number.isFinite(result.coveragePercent) ? Math.round(result.coveragePercent) : 0)),
+                colors: Array.isArray(result.colors) ? result.colors : [],
+                hasScarring: Boolean(result.hasScarring)
+            };
+        } catch (err) {
+            clearTimeout(timeoutId);
+            console.warn('Gemini analysis failed, falling back to rule engine:', err.message);
+            return null;
+        }
+    }
+
     global.TattooAnalysisCore = {
         classifyPixel,
         summarizeMetrics,
         createSceneWarning,
         summarizeSelections,
-        buildCombinedInsight
+        buildCombinedInsight,
+        analyzeWithGemini
     };
 })(typeof window !== 'undefined' ? window : globalThis);
