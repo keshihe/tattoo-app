@@ -251,7 +251,8 @@
                                 maxX = Math.max(maxX, x);
                                 maxY = Math.max(maxY, y);
                             }
-                            const padding = Math.max(4, Math.round(Math.min(w, h) * 0.02));
+                            // 仅保留 2px 边界修正，避免把衣物/背景纳入 ROI
+                            const padding = 2;
                             for (let y = Math.max(0, minY - padding); y <= Math.min(h - 1, maxY + padding); y++) {
                                 for (let x = Math.max(0, minX - padding); x <= Math.min(w - 1, maxX + padding); x++) {
                                     roiMask[y * w + x] = 1;

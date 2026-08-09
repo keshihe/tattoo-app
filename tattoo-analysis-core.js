@@ -117,32 +117,41 @@
         return 'faded_black';
     }
 
-    /* ---------- 像素级分析（保持旧接口兼容） ---------- */
+    /* ---------- 像素级分析 ---------- */
     function classifyPixel(input) {
         const hue = numberOr(input.hue, 0);
         const sat = numberOr(input.sat, 0);
         const val = numberOr(input.val, 0);
         const isSkinPixel = Boolean(input.isSkinPixel);
         const localSkinCount = numberOr(input.localSkinCount, 0);
-        const hasLocalSkin = localSkinCount > 0;
+        const localMeanV = numberOr(input.localMeanV, 0.55);
+
+        // Max pixels in 7x7 local window
+        const LOCAL_WINDOW_SIZE = 49;
 
         // 跳过皮肤像素
         if (isSkinPixel) {
-            // 高亮皮肤可能是疤痕
             if (val > 0.90 && sat < 0.13) {
                 return { isInk: false, isScar: true, color: null };
             }
             return { isInk: false, isScar: false, color: null };
         }
 
-        // 周围没有皮肤 → 可能是背景/衣物，降低置信度
-        if (!hasLocalSkin) {
+        // 关键：周围皮肤密度不足 → 衣物/背景边界，排除
+        // 纹身墨水被皮肤包围（高密度），衣物仅单侧贴皮肤（低密度）
+        const skinDensity = localSkinCount / LOCAL_WINDOW_SIZE;
+        if (localSkinCount < 8 || skinDensity < 0.16) {
+            return { isInk: false, isScar: false, color: null };
+        }
+
+        // 关键：必须比周围皮肤显著更深，排除阴影和深色衣物
+        const darkness = localMeanV - val;
+        if (darkness < 0.07) {
             return { isInk: false, isScar: false, color: null };
         }
 
         const color = classifyPixelColor(hue, sat, val);
 
-        // 白色/极亮 → 可能是疤痕或高光
         if (color === 'white') {
             return { isInk: false, isScar: true, color: null };
         }
