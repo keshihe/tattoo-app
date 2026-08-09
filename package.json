@@ -1,0 +1,14 @@
+{
+  "name": "miaoda-html-app",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "coding-html-devserver dev",
+    "build": "coding-html-devserver build",
+    "test": "node --test test/tattoo-analysis-core.test.mjs"
+  },
+  "devDependencies": {
+    "@lark-apaas/coding-html-devserver": "^0.1.6"
+  }
+}
