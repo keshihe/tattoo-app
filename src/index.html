@@ -2942,50 +2942,51 @@
         });
 
         // ==================== Gemini API Key Management ====================
-        const geminiKeyInput = document.getElementById('gemini-key-input');
-        const geminiKeyBtn = document.getElementById('gemini-key-btn');
-        const geminiKeyStatus = document.getElementById('gemini-key-status');
-        const geminiKeyToggle = document.getElementById('gemini-key-toggle');
-        const geminiKeyPanel = document.getElementById('gemini-key-panel');
-        const geminiBadge = document.getElementById('gemini-badge');
+        document.addEventListener('DOMContentLoaded', () => {
+            const geminiKeyInput = document.getElementById('gemini-key-input');
+            const geminiKeyBtn = document.getElementById('gemini-key-btn');
+            const geminiKeyStatus = document.getElementById('gemini-key-status');
+            const geminiKeyToggle = document.getElementById('gemini-key-toggle');
+            const geminiKeyPanel = document.getElementById('gemini-key-panel');
+            const geminiBadge = document.getElementById('gemini-badge');
 
-        function updateGeminiKeyUI() {
-            const saved = localStorage.getItem('gemini_api_key');
-            if (saved) {
-                geminiKeyStatus.textContent = 'AI分析已启用';
-                geminiKeyStatus.className = 'gemini-active';
-                geminiKeyInput.value = saved;
-                geminiKeyInput.placeholder = '已配置，可修改';
-                geminiKeyBtn.textContent = '更新';
-                if (geminiBadge) geminiBadge.style.display = 'inline-block';
-            } else {
-                geminiKeyStatus.textContent = '未配置';
-                geminiKeyStatus.className = 'gemini-inactive';
-                geminiKeyInput.value = '';
-                geminiKeyInput.placeholder = '粘贴 Gemini API Key';
-                geminiKeyBtn.textContent = '保存';
-                if (geminiBadge) geminiBadge.style.display = 'none';
+            function updateGeminiKeyUI() {
+                const saved = localStorage.getItem('gemini_api_key');
+                if (saved) {
+                    geminiKeyStatus.textContent = 'AI分析已启用';
+                    geminiKeyStatus.className = 'gemini-active';
+                    geminiKeyInput.value = saved;
+                    geminiKeyInput.placeholder = '已配置，可修改';
+                    geminiKeyBtn.textContent = '更新';
+                    if (geminiBadge) geminiBadge.style.display = 'inline-block';
+                } else {
+                    geminiKeyStatus.textContent = '未配置';
+                    geminiKeyStatus.className = 'gemini-inactive';
+                    geminiKeyInput.value = '';
+                    geminiKeyInput.placeholder = '粘贴 Gemini API Key';
+                    geminiKeyBtn.textContent = '保存';
+                    if (geminiBadge) geminiBadge.style.display = 'none';
+                }
             }
-        }
 
-        geminiKeyToggle.onclick = () => {
-            geminiKeyPanel.classList.toggle('hidden');
-        };
+            geminiKeyToggle.onclick = () => {
+                geminiKeyPanel.classList.toggle('hidden');
+            };
 
-        geminiKeyBtn.onclick = () => {
-            const key = geminiKeyInput.value.trim();
-            if (key) {
-                localStorage.setItem('gemini_api_key', key);
-                updateGeminiKeyUI();
-                geminiKeyPanel.classList.add('hidden');
-                showToast('API Key 已保存，AI分析已启用');
-            } else {
-                showToast('请输入有效的 API Key');
-            }
-        };
+            geminiKeyBtn.onclick = () => {
+                const key = geminiKeyInput.value.trim();
+                if (key) {
+                    localStorage.setItem('gemini_api_key', key);
+                    updateGeminiKeyUI();
+                    geminiKeyPanel.classList.add('hidden');
+                    showToast('API Key 已保存，AI分析已启用');
+                } else {
+                    showToast('请输入有效的 API Key');
+                }
+            };
 
-        // Init
-        updateGeminiKeyUI();
+            updateGeminiKeyUI();
+        });
     </script>
 
     <!-- Gemini API Key Settings Panel -->
