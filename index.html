@@ -1104,47 +1104,48 @@
         });
 
         // ==================== Gemini API Key Management ====================
-        const geminiKeyInput = document.getElementById('gemini-key-input');
-        const geminiKeyBtn = document.getElementById('gemini-key-btn');
-        const geminiKeyStatus = document.getElementById('gemini-key-status');
-        const geminiKeyToggle = document.getElementById('gemini-key-toggle');
-        const geminiKeyPanel = document.getElementById('gemini-key-panel');
-        const geminiBadge = document.getElementById('gemini-badge');
+        document.addEventListener('DOMContentLoaded', () => {
+            const geminiKeyInput = document.getElementById('gemini-key-input');
+            const geminiKeyBtn = document.getElementById('gemini-key-btn');
+            const geminiKeyStatus = document.getElementById('gemini-key-status');
+            const geminiKeyToggle = document.getElementById('gemini-key-toggle');
+            const geminiKeyPanel = document.getElementById('gemini-key-panel');
+            const geminiBadge = document.getElementById('gemini-badge');
 
-        function updateGeminiKeyUI() {
-            const saved = localStorage.getItem('gemini_api_key');
-            if (saved) {
-                geminiKeyStatus.textContent = 'AI分析已启用';
-                geminiKeyStatus.className = 'gemini-active';
-                geminiKeyInput.value = saved;
-                geminiKeyInput.placeholder = '已配置，可修改';
-                geminiKeyBtn.textContent = '更新';
-                if (geminiBadge) geminiBadge.style.display = 'inline-block';
-            } else {
-                geminiKeyStatus.textContent = '未配置';
-                geminiKeyStatus.className = 'gemini-inactive';
-                geminiKeyInput.value = '';
-                geminiKeyInput.placeholder = '粘贴 Gemini API Key';
-                geminiKeyBtn.textContent = '保存';
-                if (geminiBadge) geminiBadge.style.display = 'none';
+            function updateGeminiKeyUI() {
+                const saved = localStorage.getItem('gemini_api_key');
+                if (saved) {
+                    geminiKeyStatus.textContent = 'AI分析已启用';
+                    geminiKeyStatus.className = 'gemini-active';
+                    geminiKeyInput.value = saved;
+                    geminiKeyInput.placeholder = '已配置，可修改';
+                    geminiKeyBtn.textContent = '更新';
+                    if (geminiBadge) geminiBadge.style.display = 'inline-block';
+                } else {
+                    geminiKeyStatus.textContent = '未配置';
+                    geminiKeyStatus.className = 'gemini-inactive';
+                    geminiKeyInput.value = '';
+                    geminiKeyInput.placeholder = '粘贴 Gemini API Key';
+                    geminiKeyBtn.textContent = '保存';
+                    if (geminiBadge) geminiBadge.style.display = 'none';
+                }
             }
-        }
 
-        geminiKeyToggle.onclick = () => {
-            geminiKeyPanel.classList.toggle('hidden');
-        };
+            geminiKeyToggle.onclick = () => {
+                geminiKeyPanel.classList.toggle('hidden');
+            };
 
-        geminiKeyBtn.onclick = () => {
-            const key = geminiKeyInput.value.trim();
-            if (key) {
-                localStorage.setItem('gemini_api_key', key);
-                updateGeminiKeyUI();
-                geminiKeyPanel.classList.add('hidden');
-                showToast('API Key 已保存，AI分析已启用');
-            } else {
-                showToast('请输入有效的 API Key');
-            }
-        };
+            geminiKeyBtn.onclick = () => {
+                const key = geminiKeyInput.value.trim();
+                if (key) {
+                    localStorage.setItem('gemini_api_key', key);
+                    updateGeminiKeyUI();
+                    geminiKeyPanel.classList.add('hidden');
+                    showToast('API Key 已保存，AI分析已启用');
+                } else {
+                    showToast('请输入有效的 API Key');
+                }
+            };
 
-        // Init
-        updateGeminiKeyUI();</script><div id="gemini-key-panel" class="gemini-panel hidden"><div class="gemini-panel-content"><h3>AI 分析设置</h3><p style="font-size:13px;color:var(--gray-500);margin-bottom:12px">配置 Gemini API Key 以启用 AI 智能图片分析，<br>免费获取：<a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--gold)">aistudio.google.com/apikey</a></p><input type="password" id="gemini-key-input" class="gemini-input" placeholder="粘贴 Gemini API Key"> <button id="gemini-key-btn" class="gemini-btn">保存</button><div id="gemini-key-status" class="gemini-status"></div></div></div><div id="gemini-badge" style="display:none;position:fixed;bottom:16px;right:16px;background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;padding:6px 12px;border-radius:20px;font-size:11px;z-index:999;opacity:.8;pointer-events:none">AI 分析</div><button id="gemini-key-toggle" style="position:fixed;bottom:16px;left:16px;width:36px;height:36px;border-radius:50%;background:var(--dark-2);color:var(--gold);border:1px solid var(--gray-900);font-size:18px;cursor:pointer;z-index:1000;display:flex;align-items:center;justify-content:center">⚙</button></body></html>
+            updateGeminiKeyUI();
+        });</script><div id="gemini-key-panel" class="gemini-panel hidden"><div class="gemini-panel-content"><h3>AI 分析设置</h3><p style="font-size:13px;color:var(--gray-500);margin-bottom:12px">配置 Gemini API Key 以启用 AI 智能图片分析，<br>免费获取：<a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--gold)">aistudio.google.com/apikey</a></p><input type="password" id="gemini-key-input" class="gemini-input" placeholder="粘贴 Gemini API Key"> <button id="gemini-key-btn" class="gemini-btn">保存</button><div id="gemini-key-status" class="gemini-status"></div></div></div><div id="gemini-badge" style="display:none;position:fixed;bottom:16px;right:16px;background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;padding:6px 12px;border-radius:20px;font-size:11px;z-index:999;opacity:.8;pointer-events:none">AI 分析</div><button id="gemini-key-toggle" style="position:fixed;bottom:16px;left:16px;width:36px;height:36px;border-radius:50%;background:var(--dark-2);color:var(--gold);border:1px solid var(--gray-900);font-size:18px;cursor:pointer;z-index:1000;display:flex;align-items:center;justify-content:center">⚙</button></body></html>
