@@ -1393,6 +1393,156 @@
         .toast.show {
             opacity: 1;
         }
+
+        /* ==================== Questionnaire Panel ==================== */
+        .questionnaire-panel {
+            margin: 0 0 16px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--gray-100);
+            background: var(--white);
+            overflow: hidden;
+        }
+        .questionnaire-toggle {
+            width: 100%;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--gray-500);
+            background: var(--gray-50);
+            border: none;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .questionnaire-toggle:hover { background: var(--gray-100); }
+        .questionnaire-toggle .q-arrow {
+            display: inline-block;
+            transition: transform 0.2s;
+            font-size: 10px;
+        }
+        .questionnaire-toggle.expanded .q-arrow {
+            transform: rotate(180deg);
+        }
+        .questionnaire-body {
+            display: none;
+            padding: 12px 14px;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .questionnaire-body.show { display: flex; }
+        .q-field { display: flex; flex-direction: column; gap: 4px; }
+        .q-field label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+        .q-field select {
+            width: 100%;
+            height: 36px;
+            padding: 0 10px;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            font-family: inherit;
+            color: var(--gray-900);
+            background: var(--white);
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M6 9l6 6 6-6' stroke='%237A7A7A' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 28px;
+        }
+        .q-field select:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+
+        /* ==================== Confidence Badge ==================== */
+        .confidence-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+        .confidence-high { background: #e8f5e9; color: #2e7d32; }
+        .confidence-medium { background: #fff8e1; color: #f57f17; }
+        .confidence-low { background: #fbe9e7; color: #c62828; }
+
+        .crosscheck-note {
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: var(--gold-bg);
+            border-radius: var(--radius-sm);
+            font-size: 11px;
+            color: var(--gray-700);
+            line-height: 1.5;
+            border-left: 3px solid var(--gold);
+        }
+
+        /* ==================== Follow-up Modal ==================== */
+        .followup-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 210;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(4px);
+        }
+        .followup-overlay.show {
+            display: flex;
+            animation: overlayIn 0.2s ease;
+        }
+        .followup-card {
+            width: 100%;
+            max-width: 310px;
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            padding: 24px 20px 20px;
+            text-align: center;
+            animation: modalIn 0.3s ease;
+        }
+        .followup-card .followup-question {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--black);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        .followup-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .followup-btn {
+            flex: 1;
+            height: 44px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .followup-btn-yes {
+            background: var(--black);
+            color: var(--white);
+        }
+        .followup-btn-yes:active { transform: scale(0.97); }
+        .followup-btn-no {
+            background: var(--gray-50);
+            color: var(--gray-700);
+            border: 1px solid var(--gray-200);
+        }
+        .followup-btn-no:active { transform: scale(0.97); }
     </style>
 </head>
 <body>
@@ -1557,6 +1707,53 @@
 
                 <input type="file" id="photo-camera" accept="image/*" capture="environment" style="display:none" onchange="handlePhotoSelect(this)">
                 <input type="file" id="photo-album" accept="image/*" style="display:none" onchange="handlePhotoSelect(this)">
+
+                <!-- 可选问卷 -->
+                <div class="questionnaire-panel" id="questionnaire-panel">
+                    <button class="questionnaire-toggle" id="questionnaire-toggle" onclick="toggleQuestionnaire()">
+                        <span>提高分析准确度的小调查（可选）</span>
+                        <span class="q-arrow">▾</span>
+                    </button>
+                    <div class="questionnaire-body" id="questionnaire-body">
+                        <div class="q-field">
+                            <label>纹身存在时长：</label>
+                            <select id="q-duration">
+                                <option value="">请选择</option>
+                                <option value="less_1m">不到1个月</option>
+                                <option value="1_12m">1-12个月</option>
+                                <option value="1_3y">1-3年</option>
+                                <option value="3y_plus">3年以上</option>
+                            </select>
+                        </div>
+                        <div class="q-field">
+                            <label>是否治疗过：</label>
+                            <select id="q-treatments">
+                                <option value="">请选择</option>
+                                <option value="never">从未治疗</option>
+                                <option value="1-3">治疗1-3次</option>
+                                <option value="4_plus">治疗4次以上</option>
+                            </select>
+                        </div>
+                        <div class="q-field">
+                            <label>皮肤状况：</label>
+                            <select id="q-scar">
+                                <option value="">请选择</option>
+                                <option value="no">无明显疤痕</option>
+                                <option value="yes">有疤痕或湿疹</option>
+                            </select>
+                        </div>
+                        <div class="q-field">
+                            <label>纹身颜色：</label>
+                            <select id="q-color">
+                                <option value="">请选择</option>
+                                <option value="black">纯黑色</option>
+                                <option value="colorful">彩色</option>
+                                <option value="mixed">黑色彩色混合</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="upload-area" id="upload-area" onclick="openPhotoPicker('album')">
                     <div id="upload-placeholder">
                         <div class="upload-icon">
@@ -1853,6 +2050,17 @@
     <!-- Toast -->
     <div class="toast" id="toast">已复制微信号</div>
 
+    <!-- Follow-up Modal -->
+    <div class="followup-overlay" id="followup-overlay" onclick="closeFollowup(event)">
+        <div class="followup-card">
+            <div class="followup-question" id="followup-question"></div>
+            <div class="followup-buttons">
+                <button class="followup-btn followup-btn-yes" onclick="onFollowupAnswer(true)">是</button>
+                <button class="followup-btn followup-btn-no" onclick="onFollowupAnswer(false)">否</button>
+            </div>
+        </div>
+    </div>
+
     <script src="./tattoo-analysis-core.js"></script>
     <script>
         // ==================== Config ====================
@@ -1904,7 +2112,7 @@
             });
         }
 
-        function analyzeTattooImage(dataUrl) {
+        function analyzeTattooImage(dataUrl, calibration = null) {
             return new Promise((resolve) => {
                 const timeoutId = setTimeout(() => {
                     resolve(null);
@@ -2144,7 +2352,7 @@
                                 localSkinCount: localSkinCount[i],
                                 wideMeanV: wideMeanV[i],
                                 isSkinPixel: Boolean(skinMask[i])
-                            });
+                            }, calibration || {});
 
                             if (classification.isScar) {
                                 scarPixels++;
@@ -2400,6 +2608,11 @@
             btn.innerHTML = '<div class="mini-spinner"></div> AI 分析中...';
             btn.style.pointerEvents = 'none';
 
+            // 读取问卷答案
+            const questionnaire = getQuestionnaire();
+            const calibration = window.TattooAnalysisCore.getRecommendedThresholds(questionnaire);
+            const hasCalibration = calibration.strictMode || calibration.relaxedMode || calibration.scarWeight;
+
             // Small delay for UX
             await new Promise(r => setTimeout(r, 300));
 
@@ -2409,7 +2622,7 @@
 
             try {
                 photoAnalysis = await Promise.race([
-                    analyzeTattooImage(photoDataUrl),
+                    analyzeTattooImage(photoDataUrl, hasCalibration ? calibration : null),
                     timeoutPromise
                 ]);
             } catch (e) {
@@ -2422,6 +2635,9 @@
                 btn.style.pointerEvents = '';
                 return;
             }
+
+            // 交叉验证
+            photoAnalysis = window.TattooAnalysisCore.crossValidate(photoAnalysis, questionnaire);
 
             // Show preview
             const preview = document.getElementById('ai-preview');
@@ -2442,10 +2658,16 @@
                 tags.appendChild(tag);
             });
 
-            if (photoAnalysis.sceneWarning || photoAnalysis.confidence === 'low') {
+            if (photoAnalysis.confidence) {
+                const confLabels = { high: '高置信度', medium: '中等置信度', low: '低置信度' };
+                const confBadge = document.createElement('div');
+                confBadge.className = photoAnalysis.confidence === 'low' ? 'ai-tag warning' : 'ai-tag';
+                confBadge.textContent = confLabels[photoAnalysis.confidence] || '';
+                tags.appendChild(confBadge);
+            } else if (photoAnalysis.sceneWarning) {
                 const warning = document.createElement('div');
                 warning.className = 'ai-tag warning';
-                warning.textContent = photoAnalysis.sceneWarning || '图片证据有限，结果仅供参考';
+                warning.textContent = photoAnalysis.sceneWarning;
                 tags.appendChild(warning);
             }
 
@@ -2537,6 +2759,23 @@
         const weights = [25, 15, 20, 10, 30]; // position, size, color, age, conditions
         let currentStep = 0;
         const answers = {}; // { stepIndex: [selectedIndices] }
+
+        // ==================== Questionnaire ====================
+        function toggleQuestionnaire() {
+            const body = document.getElementById('questionnaire-body');
+            const toggle = document.getElementById('questionnaire-toggle');
+            const isOpen = body.classList.toggle('show');
+            toggle.classList.toggle('expanded', isOpen);
+        }
+
+        function getQuestionnaire() {
+            return {
+                duration: document.getElementById('q-duration').value || null,
+                treatments: document.getElementById('q-treatments').value || null,
+                hasScar: document.getElementById('q-scar').value || null,
+                inkColor: document.getElementById('q-color').value || null
+            };
+        }
 
         // ==================== Screen Navigation ====================
         function showScreen(id) {
@@ -2810,9 +3049,24 @@
                 document.getElementById('ai-finding-density').textContent = photoAnalysis.densityLabel;
                 document.getElementById('ai-finding-coverage').textContent = photoAnalysis.coverageLabel;
                 document.getElementById('ai-finding-skin').textContent = photoAnalysis.skinCondition;
-                document.getElementById('ai-finding-warning').textContent = photoAnalysis.sceneWarning ||
-                    (combinedInsight.hasConditionConcern ? '已结合你勾选的皮肤状态，建议师傅重点复核' :
-                        (photoAnalysis.confidence === 'low' ? '图片证据有限，仅供参考' : '已结合你填写的信息'));
+
+                // 置信度标签
+                let warningText = '';
+                if (photoAnalysis.confidence) {
+                    const confLabels = { high: '可信度：高 · 评估可靠', medium: '可信度：中 · 建议结合实际情况判断', low: '可信度：低 · 仅作参考' };
+                    warningText = confLabels[photoAnalysis.confidence] || '';
+                }
+                // 交叉验证备注
+                if (photoAnalysis.crossCheckNote) {
+                    warningText = warningText ? warningText + ' | ' + photoAnalysis.crossCheckNote : photoAnalysis.crossCheckNote;
+                }
+                document.getElementById('ai-finding-warning').textContent = warningText ||
+                    (combinedInsight.hasConditionConcern ? '已结合你勾选的皮肤状态，建议师傅重点复核' : '已结合你填写的信息');
+
+                // 追问弹窗
+                if (photoAnalysis.needFollowUp && photoAnalysis.followUpQuestion) {
+                    setTimeout(() => showFollowup(photoAnalysis.followUpQuestion), 600);
+                }
             } else {
                 aiCard.classList.remove('show');
             }
@@ -2869,6 +3123,46 @@
             toastTimer = setTimeout(() => {
                 toast.classList.remove('show');
             }, 2000);
+        }
+
+        // ==================== Follow-up Modal ====================
+        function showFollowup(question) {
+            document.getElementById('followup-question').textContent = question;
+            document.getElementById('followup-overlay').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeFollowup(event) {
+            if (event && event.target !== event.currentTarget) return;
+            document.getElementById('followup-overlay').classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        async function onFollowupAnswer(isYes) {
+            closeFollowup();
+            if (!isYes) return;
+
+            // 用户回答"是"，将问卷 treatment 设为已治疗
+            document.getElementById('q-treatments').value = '1-3';
+
+            // 重新分析
+            if (!photoDataUrl) return;
+
+            const btn = document.getElementById('btn-analyze');
+            const questionnaire = getQuestionnaire();
+            const calibration = window.TattooAnalysisCore.getRecommendedThresholds(questionnaire);
+            const hasCalibration = calibration.strictMode || calibration.relaxedMode || calibration.scarWeight;
+
+            try {
+                const newAnalysis = await analyzeTattooImage(photoDataUrl, hasCalibration ? calibration : null);
+                if (newAnalysis) {
+                    photoAnalysis = window.TattooAnalysisCore.crossValidate(newAnalysis, questionnaire);
+                    // 重新渲染结果
+                    calculateResult();
+                }
+            } catch (e) {
+                showToast('重新分析失败');
+            }
         }
 
         // ==================== Init ====================
