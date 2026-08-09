@@ -129,23 +129,10 @@
         // Max pixels in 7x7 local window
         const LOCAL_WINDOW_SIZE = 49;
 
-        // 跳过皮肤像素
-        if (isSkinPixel) {
-            if (val > scarThreshold && sat < 0.13) {
-                return { isInk: false, isScar: true, color: null };
-            }
-            return { isInk: false, isScar: false, color: null };
-        }
-
-        // 关键：周围皮肤密度不足 → 衣物/背景边界/皮肤纹理，排除
-        // 纹身墨水被皮肤包围（高密度），衣物/纹理仅局部贴皮肤（低密度）
-        // 实测：干净皮肤误检像素 avg_lsc≈15(30%)，真纹身边缘 avg_lsc≈35+(70%)
-        const skinDensity = localSkinCount / LOCAL_WINDOW_SIZE;
-
-        // 根据 calibration 调整阈值
+        // 根据 calibration 调整阈值（必须在任何使用前声明）
         let skinDensityThreshold = 0.50;
         let darknessThreshold = 0.10;
-        let scarThreshold = 0.90;
+        let scarThresholdVal = 0.90;
 
         if (calibration.strictMode) {
             skinDensityThreshold = 0.60;
@@ -156,8 +143,21 @@
         }
 
         if (calibration.scarWeight && calibration.scarWeight > 0) {
-            scarThreshold = 0.90 - calibration.scarWeight * 0.03;
+            scarThresholdVal = 0.90 - calibration.scarWeight * 0.03;
         }
+
+        // 跳过皮肤像素
+        if (isSkinPixel) {
+            if (val > scarThresholdVal && sat < 0.13) {
+                return { isInk: false, isScar: true, color: null };
+            }
+            return { isInk: false, isScar: false, color: null };
+        }
+
+        // 关键：周围皮肤密度不足 → 衣物/背景边界/皮肤纹理，排除
+        // 纹身墨水被皮肤包围（高密度），衣物/纹理仅局部贴皮肤（低密度）
+        // 实测：干净皮肤误检像素 avg_lsc≈15(30%)，真纹身边缘 avg_lsc≈35+(70%)
+        const skinDensity = localSkinCount / LOCAL_WINDOW_SIZE;
 
         if (localSkinCount < 25 || skinDensity < skinDensityThreshold) {
             return { isInk: false, isScar: false, color: null };
