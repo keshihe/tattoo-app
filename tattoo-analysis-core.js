@@ -376,11 +376,6 @@
         return { hasConditionConcern, text };
     }
 
-    /* ---------- Gemini 接口已废弃，直接返回 null ---------- */
-    async function analyzeWithGemini() {
-        return null;
-    }
-
     /* ---------- 问卷校准 ---------- */
     function getRecommendedThresholds(questionnaire) {
         const q = questionnaire || {};
@@ -472,8 +467,8 @@
         createSceneWarning,
         summarizeSelections,
         buildCombinedInsight,
-        analyzeWithGemini,
         crossValidate,
         getRecommendedThresholds
     };
 })(typeof window !== 'undefined' ? window : globalThis);
+
