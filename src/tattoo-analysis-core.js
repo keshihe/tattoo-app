@@ -146,12 +146,26 @@
             scarThresholdVal = 0.90 - calibration.scarWeight * 0.03;
         }
 
-        // 跳过皮肤像素
+        // 跳过皮肤像素（relaxedMode 例外：褪色纹身可能被皮肤检测误标为皮肤）
         if (isSkinPixel) {
-            if (val > scarThresholdVal && sat < 0.13) {
-                return { isInk: false, isScar: true, color: null };
+            if (calibration.relaxedMode) {
+                const darkness = Math.max(localMeanV, skinMeanV) - val;
+                const skinDensity = localSkinCount / LOCAL_WINDOW_SIZE;
+                // 褪色纹身像素：被误标为皮肤但略暗、低饱和 → 可能是残留墨水
+                if (localSkinCount >= 25 && skinDensity >= skinDensityThreshold &&
+                    darkness >= darknessThreshold && sat < 0.20) {
+                    // 继续往下，按墨水像素分类
+                } else if (val > scarThresholdVal && sat < 0.13) {
+                    return { isInk: false, isScar: true, color: null };
+                } else {
+                    return { isInk: false, isScar: false, color: null };
+                }
+            } else {
+                if (val > scarThresholdVal && sat < 0.13) {
+                    return { isInk: false, isScar: true, color: null };
+                }
+                return { isInk: false, isScar: false, color: null };
             }
-            return { isInk: false, isScar: false, color: null };
         }
 
         // 关键：周围皮肤密度不足 → 衣物/背景边界/皮肤纹理，排除
@@ -176,7 +190,10 @@
             return { isInk: false, isScar: true, color: null };
         }
 
-        const isInk = color !== 'faded_black' || (val < 0.35 && sat < 0.18);
+        // relaxedMode：已通过皮肤密度+暗度检查的像素，即使颜色被归为faded_black也应计入（褪色残留）
+        const isInk = calibration.relaxedMode
+            ? true
+            : (color !== 'faded_black' || (val < 0.35 && sat < 0.18));
 
         return {
             isInk,
