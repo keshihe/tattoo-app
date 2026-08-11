@@ -20,38 +20,9 @@
         white: '白色'
     };
 
-    const assessmentRules = {
-        type: { black_gray: 5, traditional: 10, new_traditional: 10, line_text: 5, colorful: 13, cover: 15 },
-        color: { black: 0, gray: 0, red: 3, blue: 5, green: 8, yellow: 10, purple: 8 },
-        density: { low: 5, medium: 15, high: 25 },
-        cover: { none: 0, partial: 10, full: 20 },
-        skin: { flat: 0, raised: 7, scar_like: 15 },
-        location: { torso: 0, arm: 3, leg: 5, finger: 10 }
-    };
-
-    const assessmentLabels = {
-        type: {
-            black_gray: '黑灰写实',
-            traditional: '欧美传统',
-            new_traditional: '新传统',
-            line_text: '线条文字',
-            colorful: '彩色复杂',
-            cover: '覆盖纹身'
-        },
-        color: {
-            black: '黑色',
-            gray: '灰色',
-            red: '红色',
-            blue: '蓝色',
-            green: '绿色',
-            yellow: '黄色',
-            purple: '紫色'
-        },
-        density: { low: '低饱和', medium: '正常密度', high: '高饱和' },
-        cover: { none: '无覆盖', partial: '局部修改', full: '完全覆盖' },
-        skin: { flat: '皮肤平整', raised: '轻微凸起', scar_like: '明显凸起' },
-        location: { torso: '躯干', arm: '手臂', leg: '腿部', finger: '手指/脚趾' }
-    };
+    // 评分规则与标签从独立文件 tattooRules.js 加载（方便调参，不用改引擎代码）
+    const assessmentRules = (window.TattooRules && window.TattooRules.assessmentRules) || {};
+    const assessmentLabels = (window.TattooRules && window.TattooRules.assessmentLabels) || {};
 
     function numberOr(value, fallback) {
         return Number.isFinite(value) ? value : fallback;
@@ -447,8 +418,8 @@
         const breakdown = {
             type: assessmentRules.type[input.type] || 0,
             color: Math.min(15, colorScore),
-            density: assessmentRules.density[input.density] || 0,
-            cover: assessmentRules.cover[input.cover] || 0,
+            status: assessmentRules.status[input.status] || 0,
+            saturation: assessmentRules.saturation[input.saturation] || 0,
             skin: assessmentRules.skin[input.skin] || 0,
             location: assessmentRules.location[input.location] || 0
         };
@@ -463,44 +434,53 @@
         const tags = [
             assessmentLabels.type[input.type],
             ...colors.map(color => assessmentLabels.color[color]),
-            assessmentLabels.density[input.density],
-            assessmentLabels.cover[input.cover],
+            assessmentLabels.status[input.status],
+            assessmentLabels.saturation[input.saturation],
             assessmentLabels.skin[input.skin],
             assessmentLabels.location[input.location]
-        ].filter(Boolean).map(label => `#${label}`);
+        ].filter(Boolean).map(label => '#' + label);
 
         const riskFactors = [];
-        if (input.density === 'high') {
-            riskFactors.push({ title: '色料密度', text: '高饱和色料需要更谨慎地分层评估，通常不适合用单次结果判断整体方案。' });
+        if (input.saturation === 'deep' || input.saturation === 'high_sat') {
+            riskFactors.push({ title: '色料饱和度', text: '高饱和色料需要更谨慎地分层评估，通常不适合用单次结果判断整体方案。' });
         }
-        if (input.cover === 'partial' || input.cover === 'full' || input.type === 'cover') {
-            riskFactors.push({ title: '覆盖历史', text: '覆盖或修改纹身可能存在多层色料，建议由师傅面诊确认底层颜色。' });
+        if (input.status === 'covered' || input.status === 'modified' || input.type === 'cover') {
+            riskFactors.push({ title: '覆盖/修改历史', text: '覆盖或修改纹身可能存在多层色料，建议由师傅面诊确认底层颜色和层次。' });
         }
-        if (colors.some(color => ['red', 'green', 'yellow', 'purple', 'blue'].includes(color))) {
-            riskFactors.push({ title: '彩色色料', text: '彩色色料对设备参数和恢复节奏更敏感，需要结合肤质制定方案。' });
+        if (input.status === 'washed') {
+            riskFactors.push({ title: '已洗过纹身', text: '已做过清洗处理，色料可能不均匀残留，需要分层评估剩余色料分布。' });
+        }
+        if (colors.some(color => ['red', 'green', 'yellow', 'purple', 'blue', 'orange'].includes(color))) {
+            riskFactors.push({ title: '彩色色料', text: '彩色色料对设备参数和恢复节奏更敏感，需要结合肤质制定个性化方案。' });
         }
         if (input.skin === 'raised' || input.skin === 'scar_like') {
             riskFactors.push({ title: '皮肤状态', text: '凸起或疑似疤痕区域需要先评估皮肤承受度，再判断是否适合继续处理。' });
         }
-        if (input.location === 'finger') {
-            riskFactors.push({ title: '恢复位置', text: '手指和脚趾代谢与摩擦情况特殊，恢复过程需要更细致观察。' });
+        if (input.location === 'hand' || input.location === 'foot' || input.location === 'joint' || input.location === 'neck') {
+            riskFactors.push({ title: '恢复位置', text: '该位置血液循环或摩擦情况特殊，恢复过程需要更细致的观察和护理。' });
         }
 
         const advantages = [];
-        if (input.cover === 'none') {
-            advantages.push({ title: '无覆盖', text: '没有覆盖历史时，色料层次通常更容易被判断。' });
+        if (input.status === 'original') {
+            advantages.push({ title: '原始纹身', text: '没有覆盖或修改历史，色料层次通常更容易被清晰判断。' });
         }
-        if (input.density === 'low') {
-            advantages.push({ title: '低密度', text: '色料较浅时，初步方案通常更容易循序推进。' });
+        if (input.saturation === 'light') {
+            advantages.push({ title: '浅色纹身', text: '色料较浅时，初步方案通常更容易循序推进，所需次数较少。' });
         }
         if (input.skin === 'flat') {
-            advantages.push({ title: '皮肤状态', text: '皮肤平整有利于判断颜色边界和恢复反应。' });
+            advantages.push({ title: '皮肤状态良好', text: '皮肤平整有利于判断颜色边界和恢复反应。' });
         }
         if (colors.length > 0 && colors.every(color => color === 'black' || color === 'gray')) {
-            advantages.push({ title: '颜色结构', text: '黑灰类色料的评估路径相对清晰。' });
+            advantages.push({ title: '颜色结构简单', text: '黑灰类色料的评估路径相对清晰，处理参数成熟。' });
+        }
+        if (input.location === 'arm' || input.location === 'leg') {
+            advantages.push({ title: '四肢部位', text: '手臂和腿部血液循环好，恢复较快，护理也相对方便。' });
+        }
+        if (input.type === 'minimal' || input.type === 'line' || input.type === 'lettering') {
+            advantages.push({ title: '简单风格', text: '线条类或小清新风格纹身通常面积小、色料集中，评估难度较低。' });
         }
 
-        const suggestion = `${assessment.level.title}。建议先上传清晰近照，由专业师傅结合颜色、密度、覆盖层次、皮肤状态和位置进行人工复核，再制定循序渐进的处理方案。`;
+        const suggestion = assessment.level.title + '。建议先上传清晰近照，由栩刺青专业师傅结合颜色、饱和度、纹身状态、皮肤条件和位置进行人工复核，再制定循序渐进的处理方案。';
 
         return Object.assign({}, assessment, {
             title: assessment.level.title,
