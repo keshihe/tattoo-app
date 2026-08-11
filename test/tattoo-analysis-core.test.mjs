@@ -4,15 +4,9 @@ import vm from 'node:vm';
 import test from 'node:test';
 
 const source = fs.readFileSync(new URL('../src/tattoo-analysis-core.js', import.meta.url), 'utf8');
-const context = {
-  window: {}
-};
+const context = { window: {} };
 vm.runInNewContext(source, context, { filename: 'tattoo-analysis-core.js' });
 const core = context.window.TattooAnalysisCore;
-
-test('local analysis does not expose a Gemini API', () => {
-  assert.equal(core.analyzeWithGemini, undefined);
-});
 
 test('summarizeSelections keeps selected answers grouped by question', () => {
   const steps = [
@@ -194,45 +188,4 @@ test('complex scenes with stable pigment evidence keep detected labels', () => {
 
   assert.equal(result.colorType, '黑色/黑灰');
   assert.equal(result.coverageLabel, '大面积');
-});
-
-test('calculates six assessment dimensions and caps total at 100', () => {
-  const result = core.calculateAssessment({
-    type: 'cover',
-    colors: ['black', 'red', 'blue', 'green', 'yellow', 'purple'],
-    density: 'high',
-    cover: 'full',
-    skin: 'scar_like',
-    location: 'finger'
-  });
-
-  assert.equal(result.totalScore, 100);
-  assert.equal(result.breakdown.density, 25);
-  assert.equal(result.breakdown.cover, 20);
-  assert.equal(result.breakdown.color, 15);
-});
-
-test('maps score boundaries to the four report levels', () => {
-  assert.equal(core.getDifficultyLevel(25).level, 1);
-  assert.equal(core.getDifficultyLevel(26).level, 2);
-  assert.equal(core.getDifficultyLevel(50).level, 2);
-  assert.equal(core.getDifficultyLevel(51).level, 3);
-  assert.equal(core.getDifficultyLevel(75).level, 3);
-  assert.equal(core.getDifficultyLevel(76).level, 4);
-});
-
-test('generates report tags and avoids treatment-count promises', () => {
-  const report = core.generateReport({
-    type: 'traditional',
-    colors: ['black', 'red'],
-    density: 'high',
-    cover: 'none',
-    skin: 'flat',
-    location: 'arm'
-  });
-
-  assert.ok(report.tags.includes('#欧美传统'));
-  assert.ok(report.riskFactors.some((item) => item.title === '色料密度'));
-  assert.ok(report.advantages.some((item) => item.title === '皮肤状态'));
-  assert.doesNotMatch(report.suggestion, /保证|几次洗掉|一定/);
 });

@@ -26,6 +26,10 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Inject Gemini API Key
+        run: find ./dist -type f \( -name '*.js' -o -name '*.html' \) -exec sed -i "s|__GEMINI_API_KEY__|${{ secrets.GEMINI_API_KEY }}|g" {} +
+        # force fresh build 2026-08-09
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
