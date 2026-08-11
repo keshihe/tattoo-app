@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>专业洗纹身 · AI智能评估</title>
+    <title>栩刺青 Tattoo AI · 智能纹身评估系统</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -1543,6 +1543,247 @@
             border: 1px solid var(--gray-200);
         }
         .followup-btn-no:active { transform: scale(0.97); }
+
+        /* ==================== Tattoo AI Clinical Theme ==================== */
+        :root {
+            --black: #f4fbff;
+            --dark: #071019;
+            --dark-2: #0d1924;
+            --gray-900: #ecf6fb;
+            --gray-700: #b3c3cd;
+            --gray-500: #8295a2;
+            --gray-400: #667985;
+            --gray-300: #354a56;
+            --gray-200: #243640;
+            --gray-100: #172630;
+            --gray-50: #101c26;
+            --bg: #081018;
+            --white: #101a23;
+            --gold: #d4b36a;
+            --gold-light: #ead189;
+            --gold-dark: #f0cf83;
+            --gold-bg: rgba(212,179,106,0.10);
+            --gold-border: rgba(212,179,106,0.28);
+            --cyan: #40e3ff;
+            --cyan-soft: rgba(64,227,255,0.14);
+            --cyan-border: rgba(64,227,255,0.36);
+            --panel: rgba(16,26,35,0.94);
+            --panel-2: rgba(12,22,31,0.98);
+            --risk: #ffbd73;
+            --success: #55e6a5;
+            --shadow-sm: 0 1px 0 rgba(255,255,255,0.03), 0 12px 28px rgba(0,0,0,0.24);
+            --shadow-md: 0 18px 44px rgba(0,0,0,0.28);
+            --shadow-lg: 0 24px 60px rgba(0,0,0,0.36);
+            --shadow-gold: 0 0 0 1px rgba(64,227,255,0.26), 0 14px 34px rgba(64,227,255,0.15);
+        }
+
+        * { letter-spacing: 0 !important; }
+        html, body { background: #050a10; color: var(--gray-900); }
+        .app {
+            background:
+                radial-gradient(circle at 50% -40px, rgba(64,227,255,0.18), transparent 240px),
+                linear-gradient(180deg, #071019 0%, #09131d 42%, #050a10 100%);
+            color: var(--gray-900);
+        }
+        .topbar {
+            background: rgba(6,13,20,0.92);
+            border-bottom-color: rgba(64,227,255,0.14);
+            backdrop-filter: blur(12px);
+        }
+        .topbar-logo {
+            background: linear-gradient(145deg, rgba(64,227,255,0.18), rgba(212,179,106,0.16));
+            border: 1px solid var(--cyan-border);
+        }
+        .topbar-name, .photo-title, .assess-title, .section-label-text, .recovery-name,
+        .info-card-title, .faq-q, .ai-card-title, .customer-summary-header, .modal-title,
+        .followup-card .followup-question { color: var(--gray-900); }
+        .topbar-phone, .btn-back, .btn-call, .btn-copy, .followup-btn-no {
+            background: var(--panel-2);
+            border-color: var(--gray-200);
+        }
+        .hero, .result-hero {
+            background:
+                linear-gradient(135deg, rgba(64,227,255,0.14), transparent 42%),
+                linear-gradient(180deg, rgba(16,26,35,0.98), rgba(8,16,24,0.86));
+            border-bottom: 1px solid rgba(64,227,255,0.14);
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::after, .result-hero::after {
+            content: '';
+            position: absolute;
+            left: 20px;
+            right: 20px;
+            bottom: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+            opacity: 0.52;
+        }
+        .hero-brand { color: var(--gray-900); }
+        .value-card, .case-card, .customer-summary, .ai-card, .info-card,
+        .questionnaire-panel, .upload-area, .modal-card, .followup-card {
+            background: var(--panel);
+            border-color: rgba(64,227,255,0.16);
+            box-shadow: var(--shadow-sm);
+        }
+        .value-card-icon, .upload-icon, .wechat-strip-icon {
+            background: var(--cyan-soft);
+            border: 1px solid var(--cyan-border);
+        }
+        .progress-seg { background: rgba(255,255,255,0.08); }
+        .progress-seg.done, .progress-seg.current {
+            background: linear-gradient(90deg, var(--cyan), var(--gold));
+            box-shadow: 0 0 18px rgba(64,227,255,0.26);
+        }
+        .tag {
+            background: rgba(15,27,38,0.96);
+            border-color: rgba(64,227,255,0.16);
+            color: var(--gray-700);
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+        .tag.selected {
+            background: linear-gradient(135deg, rgba(64,227,255,0.18), rgba(212,179,106,0.12));
+            border-color: var(--cyan);
+            color: var(--gray-900);
+            box-shadow: var(--shadow-gold);
+        }
+        .tag.selected .tag-check {
+            background: var(--cyan);
+            border-color: var(--cyan);
+        }
+        .btn-next, .btn-wechat, .btn-modal-wechat, .btn-wechat-footer,
+        .btn-analyze, .upload-choice.primary, .followup-btn-yes {
+            background: linear-gradient(135deg, #0c2a36, #12212c 58%, #2a2416);
+            border: 1px solid rgba(64,227,255,0.28);
+            color: var(--gray-900);
+            box-shadow: 0 14px 34px rgba(0,0,0,0.24);
+        }
+        .btn-next::after, .btn-wechat::after {
+            background: linear-gradient(90deg, var(--cyan), var(--gold));
+        }
+        .result-score {
+            display: inline-flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 3px;
+            width: 128px;
+            height: 128px;
+            margin: 2px auto 14px;
+            border-radius: 50%;
+            color: var(--gray-900);
+            background:
+                radial-gradient(circle at center, rgba(64,227,255,0.13) 0 48%, transparent 49%),
+                conic-gradient(from -90deg, var(--cyan), var(--gold), rgba(255,255,255,0.12), var(--cyan));
+            box-shadow: inset 0 0 0 10px #0a141d, 0 0 46px rgba(64,227,255,0.22);
+        }
+        .result-score span {
+            font-size: 42px;
+            font-weight: 800;
+            line-height: 1;
+        }
+        .result-score small {
+            color: var(--gray-500);
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .result-level-wrap {
+            color: var(--cyan);
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .result-summary, .customer-summary-note, .recovery-tip, .crosscheck-note {
+            background: rgba(6,13,20,0.72);
+            border-color: rgba(64,227,255,0.14);
+            color: var(--gray-700);
+        }
+        .result-tags, .report-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .result-tags {
+            margin-top: 12px;
+            justify-content: center;
+        }
+        .result-tags span, .customer-summary-tag {
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(64,227,255,0.10);
+            border: 1px solid rgba(64,227,255,0.22);
+            color: var(--cyan);
+            font-size: 12px;
+            line-height: 1.25;
+        }
+        .report-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin: 16px 20px 0;
+        }
+        .report-card {
+            padding: 15px;
+            border-radius: var(--radius-md);
+            background: var(--panel);
+            border: 1px solid rgba(64,227,255,0.16);
+            box-shadow: var(--shadow-sm);
+        }
+        .report-card.risk { border-left: 3px solid var(--risk); }
+        .report-card.advantage { border-left: 3px solid var(--success); }
+        .report-card.suggestion { border-left: 3px solid var(--cyan); }
+        .report-card-title {
+            margin-bottom: 10px;
+            color: var(--gray-900);
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .report-item, .report-empty {
+            width: 100%;
+            padding: 10px 11px;
+            border-radius: var(--radius-sm);
+            background: rgba(255,255,255,0.035);
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .report-item-title {
+            color: var(--gray-900);
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+        .report-item-text, .report-empty, .report-suggestion, .report-disclaimer {
+            color: var(--gray-700);
+            font-size: 12px;
+            line-height: 1.65;
+        }
+        .report-disclaimer {
+            margin-top: 10px;
+            color: var(--gold-dark);
+        }
+        .recovery-dot {
+            background: #0a141d;
+            border-color: var(--cyan);
+            color: var(--cyan);
+        }
+        .recovery-list::before { background: linear-gradient(180deg, var(--cyan), var(--gold), rgba(255,255,255,0.08)); }
+        .ai-finding, .faq-item { border-bottom-color: rgba(255,255,255,0.07); }
+        .tips-list li::before { background: var(--cyan); }
+        .qr-wrap {
+            background: #fff;
+            border-color: var(--gold-border);
+        }
+        .q-field select {
+            background-color: var(--panel-2);
+            color: var(--gray-900);
+            border-color: var(--gray-200);
+        }
+        @media (max-width: 375px) {
+            .app { max-width: 100%; }
+            .tag-cloud { grid-template-columns: 1fr; }
+            .cta-bar-buttons { flex-direction: column; }
+            .btn-call { flex: none; width: 100%; }
+            .result-score { width: 116px; height: 116px; }
+            .result-score span { font-size: 38px; }
+        }
     </style>
 </head>
 <body>
@@ -1556,7 +1797,7 @@
                         <path d="M9 12l2 2 4-4" stroke="#C9A961" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </div>
-                <div class="topbar-name">DeliPoo<span> · 专业洗纹身</span></div>
+                <div class="topbar-name">栩刺青<span> · Tattoo AI</span></div>
             </div>
             <a href="tel:13800138000" class="topbar-phone" aria-label="拨打电话">
                 <svg viewBox="0 0 24 24" fill="none">
@@ -1568,8 +1809,8 @@
         <!-- ========== Welcome Screen ========== -->
         <section id="screen-welcome" class="screen active">
             <div class="hero">
-                <h1 class="hero-brand"><span class="gold-line"></span>专业洗纹身<br>AI智能评估</h1>
-                <p class="hero-tagline">PRECISION LASER TATTOO REMOVAL</p>
+                <h1 class="hero-brand"><span class="gold-line"></span>栩刺青 Tattoo AI<br>智能纹身评估系统</h1>
+                <p class="hero-tagline">TATTOO INTELLIGENCE ASSESSMENT</p>
             </div>
 
             <div class="value-props">
@@ -1607,7 +1848,7 @@
                     <svg viewBox="0 0 24 24" fill="none">
                         <path d="M9 12l2 2 4-4M12 3a9 9 0 100 18 9 9 0 000-18z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-                    立即免费评估
+                    开始智能评估
                 </button>
                 <div class="social-proof">
                     <span class="social-proof-dot"></span>
@@ -1792,7 +2033,7 @@
                         <svg viewBox="0 0 24 24" fill="none">
                             <path d="M9 12l2 2 4-4M12 3a9 9 0 100 18 9 9 0 000-18z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        开始 AI 分析
+                        开始图片分析
                     </button>
                     <button class="btn-analyze" id="btn-continue-assess" style="display:none" onclick="continueToAssess()">
                         <span>继续评估</span>
@@ -1809,11 +2050,11 @@
             <div class="assess-header">
                 <div class="progress-track" id="progress-track"></div>
                 <div class="assess-step-info">
-                    <span class="assess-step-num" id="step-num">STEP 1 / 5</span>
-                    <span class="assess-step-hint">可多选</span>
+                    <span class="assess-step-num" id="step-num">STEP 1 / 6</span>
+                    <span class="assess-step-hint" id="step-hint">请选择一项</span>
                 </div>
-                <h2 class="assess-title" id="assess-title">纹身在哪个部位？</h2>
-                <p class="assess-desc" id="assess-desc">选择你的纹身所在部位，可多选</p>
+                <h2 class="assess-title" id="assess-title">你的纹身属于哪种类型？</h2>
+                <p class="assess-desc" id="assess-desc">选择最接近的一项</p>
             </div>
             <div class="tag-cloud" id="tag-cloud"></div>
             <div class="assess-nav">
@@ -1844,9 +2085,11 @@
         <section id="screen-result" class="screen">
             <div class="result-hero">
                 <div class="result-label">AI 评估结果</div>
+                <div class="result-score"><span id="result-score">0</span><small>/100</small></div>
                 <div class="result-level-wrap" id="result-stars"></div>
-                <div class="result-type" id="result-type">中等难度 · <span class="gold-text">稳步恢复型</span></div>
+                <div class="result-type" id="result-type">复杂处理型 · <span class="gold-text">建议人工复核</span></div>
                 <div class="result-summary" id="result-summary"></div>
+                <div class="result-tags" id="result-tags"></div>
             </div>
 
             <!-- Customer Input Summary -->
@@ -1861,6 +2104,22 @@
                 <div class="customer-summary-list" id="customer-summary-list"></div>
                 <div class="customer-summary-note" id="customer-summary-note"></div>
                 <div class="customer-summary-share">完成后请截图发送给师傅</div>
+            </div>
+
+            <div class="report-grid">
+                <div class="report-card risk">
+                    <div class="report-card-title">风险因素</div>
+                    <div class="report-list" id="risk-factors"></div>
+                </div>
+                <div class="report-card advantage">
+                    <div class="report-card-title">优势因素</div>
+                    <div class="report-list" id="advantages"></div>
+                </div>
+                <div class="report-card suggestion">
+                    <div class="report-card-title">专业建议</div>
+                    <div class="report-suggestion" id="result-suggestion"></div>
+                    <div class="report-disclaimer">结果仅供初步参考，具体方案以人工面诊为准</div>
+                </div>
             </div>
 
             <!-- AI Image Analysis Card -->
@@ -1943,7 +2202,7 @@
                         <svg viewBox="0 0 24 24" fill="none">
                             <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        微信咨询
+                        上传高清照片进一步分析
                     </button>
                     <a href="tel:13800138000" class="btn-call" aria-label="拨打电话">
                         <svg viewBox="0 0 24 24" fill="none">
@@ -1951,7 +2210,7 @@
                         </svg>
                     </a>
                 </div>
-                <div class="cta-bar-hint">加微信发图，师傅一对一免费评估</div>
+                <div class="cta-bar-hint">添加微信专业评估，师傅一对一免费看图</div>
             </div>
 
             <div class="info-section">
@@ -2007,7 +2266,7 @@
                     <svg viewBox="0 0 24 24" fill="none">
                         <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-                    加微信咨询 DeliPoo
+                    添加微信专业评估
                 </button>
             </div>
         </section>
@@ -2118,38 +2377,9 @@
                     resolve(null);
                 }, 12000);
 
-                // Try Gemini AI analysis first (parallel with pixel analysis as fallback)
-                let geminiDone = false;
-                window.TattooAnalysisCore.analyzeWithGemini(dataUrl).then(geminiResult => {
-                    if (geminiDone) return;
-                    if (geminiResult) {
-                        geminiDone = true;
-                        clearTimeout(timeoutId);
-                        resolve({
-                            colorType: geminiResult.colorType,
-                            densityLabel: geminiResult.densityLabel,
-                            coverageLabel: geminiResult.coverageLabel,
-                            skinCondition: geminiResult.skinCondition,
-                            topColors: (geminiResult.colors || []).map(c => ({ color: c, pct: 0 })),
-                            isMultiColor: geminiResult.isMultiColor,
-                            inkCoveragePct: geminiResult.inkCoveragePct,
-                            difficultyMod: geminiResult.difficultyMod,
-                            confidence: geminiResult.confidence,
-                            sceneWarning: geminiResult.sceneWarning,
-                            hasScarring: geminiResult.hasScarring,
-                            aiPowered: true,
-                            evidence: {
-                                aiAnalysis: true,
-                                inkCoverage: geminiResult.inkCoveragePct / 100
-                            },
-                            photoDataUrl: dataUrl
-                        });
-                    }
-                }).catch(() => {});
-
+                // 本地像素分析，不上传图片
                 const img = new Image();
                 img.onload = () => {
-                    if (geminiDone) return;
                     try {
                         const canvas = document.createElement('canvas');
                         const maxDim = 480; // 提高分辨率，小纹身笔画更清晰
@@ -2539,7 +2769,6 @@
                     }
                 };
                 img.onerror = () => {
-                    if (geminiDone) return;
                     clearTimeout(timeoutId);
                     resolve(null);
                 };
@@ -2549,7 +2778,7 @@
 
         function resetPhotoUI() {
             const btnAnalyze = document.getElementById('btn-analyze');
-            btnAnalyze.innerHTML = '<svg viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4M12 3a9 9 0 100 18 9 9 0 000-18z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> 开始 AI 分析';
+            btnAnalyze.innerHTML = '<svg viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4M12 3a9 9 0 100 18 9 9 0 000-18z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> 开始图片分析';
             btnAnalyze.style.pointerEvents = '';
             btnAnalyze.style.display = 'none';
 
@@ -2605,7 +2834,7 @@
             if (!photoDataUrl) return;
 
             const btn = document.getElementById('btn-analyze');
-            btn.innerHTML = '<div class="mini-spinner"></div> AI 分析中...';
+            btn.innerHTML = '<div class="mini-spinner"></div> 图片分析中...';
             btn.style.pointerEvents = 'none';
 
             // 读取问卷答案
@@ -2631,7 +2860,7 @@
 
             if (!photoAnalysis) {
                 showToast('图片分析失败，请重新拍照');
-                btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4M12 3a9 9 0 100 18 9 9 0 000-18z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> 开始 AI 分析';
+                btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4M12 3a9 9 0 100 18 9 9 0 000-18z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> 开始图片分析';
                 btn.style.pointerEvents = '';
                 return;
             }
@@ -2691,72 +2920,81 @@
         // ==================== Assessment Data ====================
         const steps = [
             {
-                title: '纹身在哪个部位？',
-                desc: '选择你的纹身所在部位，可多选',
+                key: 'type',
+                title: '你的纹身属于哪种类型？',
+                desc: '选择最接近的一项',
+                multi: false,
                 options: [
-                    { text: '大臂 / 上臂', score: 1.5 },
-                    { text: '小臂 / 前臂', score: 2 },
-                    { text: '大腿', score: 1.5 },
-                    { text: '小腿', score: 2.5 },
-                    { text: '肩背 / 后背', score: 2.5 },
-                    { text: '前胸', score: 2.5 },
-                    { text: '腰腹', score: 2.5 },
-                    { text: '手部 / 手指', score: 4.5 },
-                    { text: '脚部 / 脚趾', score: 5 },
-                    { text: '脖子 / 锁骨', score: 4 },
-                    { text: '头面部', score: 5 }
+                    { value: 'black_gray', text: '黑灰写实' },
+                    { value: 'traditional', text: '欧美传统' },
+                    { value: 'new_traditional', text: '新传统' },
+                    { value: 'line_text', text: '线条文字' },
+                    { value: 'colorful', text: '彩色复杂' },
+                    { value: 'cover', text: '覆盖纹身' }
                 ]
             },
             {
-                title: '纹身大概多大？',
-                desc: '用身边的东西比一下就行，可多选',
+                key: 'colors',
+                title: '纹身里有哪些颜色？',
+                desc: '可以多选，颜色越复杂越需要谨慎评估',
+                multi: true,
                 options: [
-                    { text: '硬币大小', score: 1 },
-                    { text: '打火机大小', score: 2 },
-                    { text: '手掌大小', score: 3 },
-                    { text: '半臂 / 半背', score: 4 },
-                    { text: '全臂 / 满背 / 花腿', score: 5 }
+                    { value: 'black', text: '黑色' },
+                    { value: 'gray', text: '灰色' },
+                    { value: 'red', text: '红色' },
+                    { value: 'blue', text: '蓝色' },
+                    { value: 'green', text: '绿色' },
+                    { value: 'yellow', text: '黄色' },
+                    { value: 'purple', text: '紫色' }
                 ]
             },
             {
-                title: '纹身是什么颜色？',
-                desc: '不同颜色难度不同，可多选',
+                key: 'density',
+                title: '色料密度如何？',
+                desc: '核心是单位区域的色料含量',
+                multi: false,
                 options: [
-                    { text: '纯黑 / 黑灰', score: 1 },
-                    { text: '深蓝 / 发青', score: 2 },
-                    { text: '红色 / 暗红', score: 2 },
-                    { text: '棕色 / 咖啡', score: 2.5 },
-                    { text: '绿色 / 紫色', score: 3.5 },
-                    { text: '黄色 / 橙色', score: 4.5 },
-                    { text: '多色彩色', score: 4.5 },
-                    { text: '白色 / 荧光色', score: 5 }
+                    { value: 'low', text: '低饱和' },
+                    { value: 'medium', text: '正常密度' },
+                    { value: 'high', text: '高饱和' }
                 ]
             },
             {
-                title: '纹了多久了？',
-                desc: '新纹身和老纹身难度不同',
+                key: 'cover',
+                title: '是否有覆盖或修改？',
+                desc: '覆盖可能意味着内部存在多层色料',
+                multi: false,
                 options: [
-                    { text: '1 年内', score: 2 },
-                    { text: '1-3 年', score: 2.5 },
-                    { text: '3-5 年', score: 3 },
-                    { text: '5 年以上', score: 3.5 }
+                    { value: 'none', text: '无覆盖' },
+                    { value: 'partial', text: '局部修改' },
+                    { value: 'full', text: '完全覆盖' }
                 ]
             },
             {
-                title: '还有这些情况吗？',
-                desc: '选择符合你情况的项目，可多选',
+                key: 'skin',
+                title: '皮肤状态如何？',
+                desc: '凸起不一定代表洗不掉，但需要人工复核',
+                multi: false,
                 options: [
-                    { text: '之前洗过', score: 3.5 },
-                    { text: '有轻微凸起', score: 2.5 },
-                    { text: '明显增生', score: 4 },
-                    { text: '有疤痕 / 凹陷', score: 5 },
-                    { text: '容易留疤留印', score: 4 },
-                    { text: '以上都没有', score: 1 }
+                    { value: 'flat', text: '平整' },
+                    { value: 'raised', text: '轻微凸起' },
+                    { value: 'scar_like', text: '明显凸起 / 疤痕感' }
+                ]
+            },
+            {
+                key: 'location',
+                title: '纹身位于哪里？',
+                desc: '位置主要影响恢复速度和护理难度',
+                multi: false,
+                options: [
+                    { value: 'torso', text: '躯干' },
+                    { value: 'arm', text: '手臂' },
+                    { value: 'leg', text: '腿部' },
+                    { value: 'finger', text: '手指 / 脚趾' }
                 ]
             }
         ];
 
-        const weights = [25, 15, 20, 10, 30]; // position, size, color, age, conditions
         let currentStep = 0;
         const answers = {}; // { stepIndex: [selectedIndices] }
 
@@ -2820,6 +3058,7 @@
 
             // Step info
             document.getElementById('step-num').textContent = `STEP ${currentStep + 1} / ${total}`;
+            document.getElementById('step-hint').textContent = step.multi ? '可多选' : '请选择一项';
             document.getElementById('assess-title').textContent = step.title;
             document.getElementById('assess-desc').textContent = step.desc;
 
@@ -2846,12 +3085,17 @@
 
         function toggleTag(idx) {
             if (!answers[currentStep]) answers[currentStep] = [];
-            const arr = answers[currentStep];
-            const pos = arr.indexOf(idx);
-            if (pos > -1) {
-                arr.splice(pos, 1);
+            const step = steps[currentStep];
+            if (step.multi) {
+                const arr = answers[currentStep];
+                const pos = arr.indexOf(idx);
+                if (pos > -1) {
+                    arr.splice(pos, 1);
+                } else {
+                    arr.push(idx);
+                }
             } else {
-                arr.push(idx);
+                answers[currentStep] = [idx];
             }
             renderStep();
         }
@@ -2930,104 +3174,102 @@
             document.getElementById('customer-summary-note').textContent = combinedInsight.text;
         }
 
-        function calculateResult() {
-            let totalScore = 0;
-
+        function getAssessmentInput() {
+            const input = {};
             steps.forEach((step, stepIdx) => {
                 const selected = answers[stepIdx] || [];
-                if (selected.length === 0) return;
+                const values = selected
+                    .map(idx => step.options[idx] && step.options[idx].value)
+                    .filter(Boolean);
+                input[step.key] = step.multi ? values : (values[0] || null);
+            });
+            return input;
+        }
 
-                // Take max score among selected (worst case)
-                let maxScore = 0;
-                selected.forEach(idx => {
-                    if (step.options[idx].score > maxScore) {
-                        maxScore = step.options[idx].score;
-                    }
-                });
+        function createReportItem(item) {
+            const el = document.createElement('div');
+            el.className = 'report-item';
+            const title = document.createElement('div');
+            title.className = 'report-item-title';
+            title.textContent = item.title;
+            const text = document.createElement('div');
+            text.className = 'report-item-text';
+            text.textContent = item.text;
+            el.appendChild(title);
+            el.appendChild(text);
+            return el;
+        }
 
-                totalScore += maxScore * (weights[stepIdx] / 5);
+        function renderReportList(id, items, emptyText) {
+            const wrap = document.getElementById(id);
+            wrap.innerHTML = '';
+            if (!items || items.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'report-empty';
+                empty.textContent = emptyText;
+                wrap.appendChild(empty);
+                return;
+            }
+            items.forEach(item => wrap.appendChild(createReportItem(item)));
+        }
+
+        function getRecoveryPlan(level) {
+            if (level <= 1) {
+                return [
+                    { name: '基础复核', desc: '确认颜色边界、密度和皮肤平整度' },
+                    { name: '初步处理', desc: '以温和参数观察皮肤反应' },
+                    { name: '恢复观察', desc: '根据淡化和恢复情况决定后续节奏' }
+                ];
+            }
+            if (level === 2) {
+                return [
+                    { name: '照片复核', desc: '补充高清近照，确认颜色与密度' },
+                    { name: '分层处理', desc: '按色料反应逐步推进' },
+                    { name: '阶段评估', desc: '每次恢复后重新判断下一步方案' }
+                ];
+            }
+            if (level === 3) {
+                return [
+                    { name: '人工面评', desc: '重点确认彩色、覆盖和皮肤状态' },
+                    { name: '测试反应', desc: '先观察局部代谢和恢复表现' },
+                    { name: '精细推进', desc: '根据残留色料调整处理策略' }
+                ];
+            }
+            return [
+                { name: '专业面诊', desc: '高复杂案例需要先由师傅判断适应症' },
+                { name: '风险确认', desc: '重点确认疤痕、覆盖层和特殊部位护理' },
+                { name: '长期方案', desc: '以皮肤安全和阶段反馈为优先' }
+            ];
+        }
+
+        function calculateResult() {
+            const assessmentInput = getAssessmentInput();
+            const report = window.TattooAnalysisCore.generateReport(assessmentInput);
+
+            document.getElementById('result-score').textContent = report.totalScore;
+            document.getElementById('result-stars').textContent = `${report.level.label} · ${report.level.range} 分`;
+            document.getElementById('result-type').innerHTML = `${report.level.title} · <span class="gold-text">专业评估建议</span>`;
+            document.getElementById('result-summary').textContent = report.suggestion;
+
+            const tagWrap = document.getElementById('result-tags');
+            tagWrap.innerHTML = '';
+            report.tags.forEach(text => {
+                const tag = document.createElement('span');
+                tag.textContent = text;
+                tagWrap.appendChild(tag);
             });
 
-            // Apply photo analysis modifier
-            if (photoAnalysis) {
-                totalScore += photoAnalysis.difficultyMod;
-            }
-
-            let level, stars, type, summary, recovery;
-
-            if (totalScore < 25) {
-                level = 1;
-                type = '轻松搞定 · <span class="gold-text">快速恢复型</span>';
-                summary = '你的纹身属于比较好洗的类型，恢复周期较短。色素位置较浅，按规范流程操作，很快就能看到明显改善。';
-                recovery = [
-                    { name: '初期改善', desc: '色素开始分解，肉眼可见变浅' },
-                    { name: '明显恢复', desc: '大部分色素已清除，效果显著' },
-                    { name: '彻底恢复', desc: '接近原生肌肤状态，干净自然' }
-                ];
-            } else if (totalScore < 45) {
-                level = 2;
-                type = '常规难度 · <span class="gold-text">稳步恢复型</span>';
-                summary = '你的纹身属于常规难度，按部就班操作即可。色素稳定，恢复过程顺利，坚持完成就能达到理想效果。';
-                recovery = [
-                    { name: '初期改善', desc: '色素开始分解，颜色明显变浅' },
-                    { name: '中期恢复', desc: '大面积色素清除，远看已不明显' },
-                    { name: '后期巩固', desc: '残留色素逐步清除，趋于干净' },
-                    { name: '彻底恢复', desc: '与原生肌肤基本一致' }
-                ];
-            } else if (totalScore < 65) {
-                level = 3;
-                type = '中等难度 · <span class="gold-text">耐心恢复型</span>';
-                summary = '你的纹身属于中等难度，需要一定耐心。慢慢来能洗得很干净，不用太担心。初期就能看到明显变化，后续稳步推进即可。';
-                recovery = [
-                    { name: '初期改善', desc: '色素开始分解，可见初步淡化' },
-                    { name: '中期恢复', desc: '明显淡化，远看已不太明显' },
-                    { name: '后期巩固', desc: '近看仅剩淡淡印记' },
-                    { name: '彻底恢复', desc: '接近原生肌肤，干净自然' }
-                ];
-            } else if (totalScore < 85) {
-                level = 4;
-                type = '较高难度 · <span class="gold-text">精细恢复型</span>';
-                summary = '你的纹身有一定难度，需要更多耐心。不过别担心，我们做过很多类似案例，只要坚持都能达到理想效果。建议先做初期评估看看实际反应。';
-                recovery = [
-                    { name: '初期改善', desc: '色素开始分解，颜色有所变化' },
-                    { name: '中期恢复', desc: '逐步淡化，效果累积可见' },
-                    { name: '后期巩固', desc: '大部分色素已清除' },
-                    { name: '精细修复', desc: '残留色素逐步清除' },
-                    { name: '彻底恢复', desc: '接近原生肌肤状态' }
-                ];
-            } else {
-                level = 5;
-                type = '高难度 · <span class="gold-text">建议面诊型</span>';
-                summary = '你的纹身难度较高，情况较为复杂。文字评估仅供参考，建议加微信发张照片，师傅帮你做更精准的判断和方案。';
-                recovery = [
-                    { name: '初期评估', desc: '先做测试，观察皮肤反应' },
-                    { name: '逐步改善', desc: '色素缓慢分解，需耐心等待' },
-                    { name: '中期恢复', desc: '可见明显改善趋势' },
-                    { name: '后期巩固', desc: '持续淡化中' },
-                    { name: '精细修复', desc: '针对性处理残留色素' }
-                ];
-            }
-
-            // Render stars
-            const starsWrap = document.getElementById('result-stars');
-            starsWrap.innerHTML = '';
-            const starFilled = '<svg class="result-star" viewBox="0 0 24 24" fill="#C9A961"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>';
-            const starEmpty = '<svg class="result-star empty" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="#C9A961" stroke-width="1.5"/></svg>';
-            for (let i = 0; i < 5; i++) {
-                starsWrap.insertAdjacentHTML('beforeend', i < level ? starFilled : starEmpty);
-            }
-
-            document.getElementById('result-type').innerHTML = type;
-            document.getElementById('result-summary').textContent = summary;
+            renderReportList('risk-factors', report.riskFactors, '暂未识别到突出的高风险因素，仍建议结合照片人工复核。');
+            renderReportList('advantages', report.advantages, '当前选择未形成明显优势标签，需要更多照片和面诊信息判断。');
+            document.getElementById('result-suggestion').textContent = report.suggestion;
 
             const selectionSummary = window.TattooAnalysisCore.summarizeSelections(steps, answers);
             const combinedInsight = window.TattooAnalysisCore.buildCombinedInsight(selectionSummary, photoAnalysis);
             renderCustomerSummary(selectionSummary, combinedInsight);
 
-            // Render recovery list
             const recoveryList = document.getElementById('recovery-list');
             recoveryList.innerHTML = '';
-            recovery.forEach((phase, idx) => {
+            getRecoveryPlan(report.level.level).forEach((phase, idx) => {
                 const item = document.createElement('div');
                 item.className = 'recovery-item';
                 item.innerHTML = `
@@ -3040,7 +3282,6 @@
                 recoveryList.appendChild(item);
             });
 
-            // Render AI analysis card
             const aiCard = document.getElementById('ai-card');
             if (photoAnalysis) {
                 aiCard.classList.add('show');
@@ -3050,20 +3291,17 @@
                 document.getElementById('ai-finding-coverage').textContent = photoAnalysis.coverageLabel;
                 document.getElementById('ai-finding-skin').textContent = photoAnalysis.skinCondition;
 
-                // 置信度标签
                 let warningText = '';
                 if (photoAnalysis.confidence) {
                     const confLabels = { high: '可信度：高 · 评估可靠', medium: '可信度：中 · 建议结合实际情况判断', low: '可信度：低 · 仅作参考' };
                     warningText = confLabels[photoAnalysis.confidence] || '';
                 }
-                // 交叉验证备注
                 if (photoAnalysis.crossCheckNote) {
                     warningText = warningText ? warningText + ' | ' + photoAnalysis.crossCheckNote : photoAnalysis.crossCheckNote;
                 }
                 document.getElementById('ai-finding-warning').textContent = warningText ||
                     (combinedInsight.hasConditionConcern ? '已结合你勾选的皮肤状态，建议师傅重点复核' : '已结合你填写的信息');
 
-                // 追问弹窗
                 if (photoAnalysis.needFollowUp && photoAnalysis.followUpQuestion) {
                     setTimeout(() => showFollowup(photoAnalysis.followUpQuestion), 600);
                 }
