@@ -20,38 +20,9 @@
         white: '白色'
     };
 
-    const assessmentRules = {
-        type: { black_gray: 5, traditional: 10, new_traditional: 10, line_text: 5, colorful: 13, cover: 15 },
-        color: { black: 0, gray: 0, red: 3, blue: 5, green: 8, yellow: 10, purple: 8 },
-        density: { low: 5, medium: 15, high: 25 },
-        cover: { none: 0, partial: 10, full: 20 },
-        skin: { flat: 0, raised: 7, scar_like: 15 },
-        location: { torso: 0, arm: 3, leg: 5, finger: 10 }
-    };
-
-    const assessmentLabels = {
-        type: {
-            black_gray: '黑灰写实',
-            traditional: '欧美传统',
-            new_traditional: '新传统',
-            line_text: '线条文字',
-            colorful: '彩色复杂',
-            cover: '覆盖纹身'
-        },
-        color: {
-            black: '黑色',
-            gray: '灰色',
-            red: '红色',
-            blue: '蓝色',
-            green: '绿色',
-            yellow: '黄色',
-            purple: '紫色'
-        },
-        density: { low: '低饱和', medium: '正常密度', high: '高饱和' },
-        cover: { none: '无覆盖', partial: '局部修改', full: '完全覆盖' },
-        skin: { flat: '皮肤平整', raised: '轻微凸起', scar_like: '明显凸起' },
-        location: { torso: '躯干', arm: '手臂', leg: '腿部', finger: '手指/脚趾' }
-    };
+    // 评分规则与标签从独立文件 tattooRules.js 加载（方便调参，不用改引擎代码）
+    const assessmentRules = (window.TattooRules && window.TattooRules.assessmentRules) || {};
+    const assessmentLabels = (window.TattooRules && window.TattooRules.assessmentLabels) || {};
 
     function numberOr(value, fallback) {
         return Number.isFinite(value) ? value : fallback;
