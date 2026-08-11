@@ -435,6 +435,31 @@
             gap: 10px;
             padding: 4px 20px 0;
         }
+        .tag-cloud .tag-collapsed {
+            display: none;
+        }
+        .tag-cloud.expanded .tag-collapsed {
+            display: inline-flex;
+        }
+        .tag-expand-toggle {
+            display: none;
+            width: calc(100% - 40px);
+            margin: 12px 20px 0;
+            padding: 10px 0;
+            border-radius: var(--radius-md);
+            border: 1px dashed var(--gray-300);
+            background: transparent;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--gray-500);
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s, border-color 0.2s;
+        }
+        .tag-expand-toggle:hover {
+            background: var(--gray-100);
+            color: var(--gray-700);
+            border-color: var(--gray-700);
+        }
         .tag {
             width: 100%;
             min-height: 48px;
@@ -564,122 +589,211 @@
             margin-top: 6px;
         }
 
-        /* ==================== Result Screen ==================== */
-        .result-hero {
-            padding: 28px 20px 20px;
+        /* ==================== Result Screen V2 ==================== */
+        .result-hero-v2 {
+            padding: 32px 20px 20px;
             text-align: center;
             background: linear-gradient(180deg, var(--white) 0%, var(--bg) 100%);
         }
         .result-label {
             font-size: 12px;
-            color: var(--gray-500);
+            color: var(--gold-dark);
             letter-spacing: 2px;
-            margin-bottom: 8px;
-        }
-        .result-level-wrap {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            margin-bottom: 10px;
-        }
-        .result-star {
-            width: 22px;
-            height: 22px;
-        }
-        .result-star.empty { opacity: 0.2; }
-        .result-type {
-            font-family: var(--font-serif);
-            font-size: 22px;
-            font-weight: 700;
-            color: var(--black);
-            margin-bottom: 12px;
-        }
-        .result-type .gold-text { color: var(--gold); }
-        .result-summary {
-            background: var(--white);
-            border-radius: var(--radius-md);
-            padding: 14px 16px;
-            font-size: 13px;
-            color: var(--gray-700);
-            line-height: 1.7;
-            text-align: left;
-            border: 1px solid var(--gray-100);
-            box-shadow: var(--shadow-sm);
+            margin-bottom: 16px;
+            font-weight: 600;
         }
 
-        .customer-summary {
-            margin: 16px 20px 0;
-            padding: 16px;
-            background: var(--white);
-            border: 1px solid var(--gold-border);
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-sm);
+        /* Score Ring */
+        .result-score-v2 {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 12px;
         }
-        .customer-summary-header {
+        .score-ring {
+            position: relative;
+            width: 120px;
+            height: 120px;
+        }
+        .score-ring-svg {
+            width: 120px;
+            height: 120px;
+        }
+        .score-ring-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .score-ring-num {
+            font-family: var(--font-serif);
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--black);
+            line-height: 1;
+        }
+        .score-ring-unit {
+            font-size: 11px;
+            color: var(--gray-500);
+            margin-top: 2px;
+        }
+
+        .result-type-v2 {
+            font-family: var(--font-serif);
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--black);
+            margin-bottom: 4px;
+        }
+        .result-level-v2 {
+            font-size: 13px;
+            color: var(--gold-dark);
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+        .result-meta {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 14px;
+        }
+        .result-meta-item {
+            font-size: 12px;
+            color: var(--gray-500);
+        }
+        .result-meta-item strong {
+            color: var(--gray-900);
+            font-weight: 700;
+        }
+
+        .result-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+            padding: 0 20px;
+        }
+        .result-tags span {
+            padding: 4px 10px;
+            background: var(--gold-bg);
+            border: 1px solid var(--gold-border);
+            border-radius: 14px;
+            font-size: 11px;
+            color: var(--gold-dark);
+            font-weight: 500;
+        }
+
+        /* Expand Toggle */
+        .expand-toggle-wrap {
+            text-align: center;
+            padding: 12px 20px 4px;
+        }
+        .expand-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 24px;
+            border-radius: 20px;
+            background: var(--black);
+            color: var(--white);
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.25s;
+        }
+        .expand-toggle:active {
+            transform: scale(0.97);
+        }
+        .expand-toggle svg {
+            width: 16px;
+            height: 16px;
+            transition: transform 0.25s;
+        }
+        .expand-toggle.expanded svg {
+            transform: rotate(180deg);
+        }
+
+        /* Detail Panel */
+        .detail-panel {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+            padding: 0 20px;
+        }
+        .detail-panel.show {
+            max-height: 5000px;
+        }
+        .detail-section {
+            background: var(--white);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--gray-100);
+            box-shadow: var(--shadow-sm);
+            margin-top: 12px;
+            padding: 16px;
+        }
+        .detail-section-header {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--gray-100);
+        }
+        .detail-section-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            background: var(--black);
+            color: var(--white);
+            font-size: 12px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .detail-section-title {
             font-size: 14px;
             font-weight: 700;
             color: var(--black);
         }
-        .customer-summary-header svg { width: 18px; height: 18px; }
-        .customer-summary-subtitle {
-            margin-top: 5px;
-            font-size: 11px;
-            line-height: 1.5;
-            color: var(--gray-500);
+        .detail-section-body {
+            font-size: 13px;
+            color: var(--gray-700);
+            line-height: 1.7;
         }
-        .customer-summary-list {
+
+        /* Report Items */
+        .report-list {
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            margin-top: 14px;
+            gap: 8px;
         }
-        .customer-summary-group {
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--gray-100);
-        }
-        .customer-summary-group:last-child { padding-bottom: 0; border-bottom: 0; }
-        .customer-summary-question {
-            font-size: 11px;
-            color: var(--gray-400);
-            margin-bottom: 5px;
-        }
-        .customer-summary-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-        .customer-summary-tag {
-            padding: 5px 9px;
-            border-radius: 14px;
-            background: var(--gold-bg);
-            color: var(--gold-dark);
-            font-size: 12px;
-            line-height: 1.3;
-        }
-        .customer-summary-note {
-            margin-top: 14px;
+        .report-item {
             padding: 10px 12px;
             background: var(--gray-50);
             border-radius: var(--radius-sm);
-            color: var(--gray-700);
-            font-size: 12px;
-            line-height: 1.6;
         }
-        .customer-summary-share {
-            margin-top: 12px;
-            color: var(--gold-dark);
+        .report-item-title {
             font-size: 12px;
             font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 2px;
+        }
+        .report-item-text {
+            font-size: 11px;
+            color: var(--gray-500);
+            line-height: 1.5;
+        }
+        .report-empty {
+            font-size: 12px;
+            color: var(--gray-400);
             text-align: center;
+            padding: 8px 0;
         }
 
-        .recovery-section {
-            padding: 0 20px;
-            margin-top: 16px;
-        }
+        /* Recovery list in detail panel */
         .recovery-list {
             display: flex;
             flex-direction: column;
@@ -698,7 +812,7 @@
         .recovery-item {
             display: flex;
             gap: 14px;
-            padding: 10px 0;
+            padding: 8px 0;
             position: relative;
         }
         .recovery-dot {
@@ -732,6 +846,172 @@
             line-height: 1.5;
         }
 
+        .tips-list-v2 {
+            list-style: none;
+        }
+        .tips-list-v2 li {
+            font-size: 12px;
+            color: var(--gray-700);
+            padding: 6px 0 6px 16px;
+            position: relative;
+            line-height: 1.6;
+        }
+        .tips-list-v2 li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 11px;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--gold);
+        }
+
+        /* AI Card V2 */
+        .ai-card-v2 { display: none; }
+        .ai-card-v2.show { display: block; }
+        .ai-card-body-v2 {
+            display: flex;
+            gap: 12px;
+        }
+        .ai-card-photo-v2 {
+            flex: 0 0 100px;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            background: var(--gray-100);
+        }
+        .ai-card-photo-v2 img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .ai-card-findings-v2 {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ai-finding-v2 {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+            border-bottom: 1px solid var(--gray-100);
+            font-size: 12px;
+        }
+        .ai-finding-v2:last-child { border-bottom: none; }
+        .ai-finding-label-v2 {
+            color: var(--gray-500);
+        }
+        .ai-finding-value-v2 {
+            color: var(--gray-900);
+            font-weight: 600;
+        }
+
+        /* Save Report */
+        .btn-save-report {
+            width: calc(100% - 40px);
+            margin: 16px 20px 0;
+            height: 46px;
+            border-radius: var(--radius-md);
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gray-700);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .btn-save-report:active {
+            background: var(--gray-50);
+            transform: scale(0.98);
+        }
+        .btn-save-report svg { width: 16px; height: 16px; }
+
+        /* Convert Section */
+        .convert-section {
+            margin: 20px 20px 0;
+            padding: 18px 16px;
+            background: linear-gradient(135deg, var(--dark) 0%, var(--dark-2) 100%);
+            border-radius: var(--radius-lg);
+        }
+        .convert-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .convert-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--white);
+        }
+        .convert-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .convert-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: var(--radius-md);
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            transition: all 0.2s;
+            cursor: pointer;
+            text-align: left;
+            width: 100%;
+            color: var(--white);
+            font-family: inherit;
+        }
+        .convert-card:active {
+            background: rgba(255,255,255,0.14);
+            transform: scale(0.98);
+        }
+        .convert-card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .convert-card-icon svg { width: 20px; height: 20px; }
+        .photo-icon {
+            background: rgba(201,169,97,0.2);
+            color: var(--gold);
+        }
+        .wechat-icon {
+            background: rgba(201,169,97,0.2);
+            color: var(--gold);
+        }
+        .convert-card-text { flex: 1; }
+        .convert-card-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--white);
+            margin-bottom: 2px;
+        }
+        .convert-card-desc {
+            font-size: 11px;
+            color: var(--gray-400);
+        }
+        .convert-brand {
+            margin-top: 14px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--gold);
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        /* Recovery Tip */
         .recovery-tip {
             margin: 14px 20px 0;
             padding: 12px 14px;
@@ -751,215 +1031,6 @@
             flex-shrink: 0;
             margin-top: 1px;
         }
-
-        .result-case {
-            margin: 20px 0 0;
-            padding: 0 20px;
-        }
-        .result-case-compare {
-            display: flex;
-            gap: 6px;
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-            box-shadow: var(--shadow-md);
-        }
-        .result-case-img {
-            flex: 1;
-            position: relative;
-            aspect-ratio: 4/5;
-            background: var(--gray-100);
-            overflow: hidden;
-        }
-        .result-case-img img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .result-case-badge {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 8px 10px 6px;
-            background: linear-gradient(0deg, rgba(0,0,0,0.6), transparent);
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--white);
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .result-case-badge .dot {
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-        }
-
-        .result-case-info {
-            text-align: center;
-            margin-top: 8px;
-            font-size: 12px;
-            color: var(--gray-500);
-        }
-
-        /* CTA Bar */
-        .cta-bar {
-            padding: 20px;
-            margin-top: 20px;
-        }
-        .cta-bar-buttons {
-            display: flex;
-            gap: 10px;
-        }
-        .btn-wechat {
-            flex: 1;
-            height: 50px;
-            border-radius: var(--radius-md);
-            background: var(--black);
-            color: var(--white);
-            font-size: 14px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            transition: all 0.2s;
-            position: relative;
-            overflow: hidden;
-        }
-        .btn-wechat::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: var(--gold);
-        }
-        .btn-wechat:active {
-            transform: scale(0.98);
-        }
-        .btn-wechat svg { width: 18px; height: 18px; }
-        .btn-call {
-            flex: 0 0 50px;
-            height: 50px;
-            border-radius: var(--radius-md);
-            background: var(--white);
-            border: 1.5px solid var(--gray-200);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-        .btn-call:active {
-            background: var(--gray-50);
-            transform: scale(0.98);
-        }
-        .btn-call svg { width: 20px; height: 20px; }
-        .cta-bar-hint {
-            text-align: center;
-            font-size: 11px;
-            color: var(--gray-400);
-            margin-top: 10px;
-        }
-
-        /* Tips & FAQ */
-        .info-section {
-            padding: 0 20px;
-            margin-top: 20px;
-        }
-        .info-card {
-            background: var(--white);
-            border-radius: var(--radius-md);
-            padding: 16px;
-            border: 1px solid var(--gray-100);
-            box-shadow: var(--shadow-sm);
-            margin-bottom: 12px;
-        }
-        .info-card-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--black);
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .info-card-title svg { width: 18px; height: 18px; }
-        .tips-list {
-            list-style: none;
-        }
-        .tips-list li {
-            font-size: 12px;
-            color: var(--gray-700);
-            padding: 5px 0 5px 16px;
-            position: relative;
-            line-height: 1.6;
-        }
-        .tips-list li::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 12px;
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            background: var(--gold);
-        }
-        .faq-item {
-            padding: 10px 0;
-            border-bottom: 1px solid var(--gray-100);
-        }
-        .faq-item:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-        .faq-q {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--gray-900);
-            margin-bottom: 4px;
-        }
-        .faq-a {
-            font-size: 12px;
-            color: var(--gray-500);
-            line-height: 1.6;
-        }
-
-        .footer-trust {
-            text-align: center;
-            padding: 24px 20px calc(20px + var(--safe-bottom));
-            margin-top: 16px;
-        }
-        .footer-trust-text {
-            font-size: 11px;
-            color: var(--gray-400);
-            margin-bottom: 14px;
-        }
-        .footer-trust-text span {
-            margin: 0 6px;
-        }
-        .footer-trust-text .sep {
-            color: var(--gray-200);
-        }
-        .btn-wechat-footer {
-            width: 100%;
-            height: 48px;
-            border-radius: var(--radius-md);
-            background: linear-gradient(135deg, var(--dark), var(--dark-2));
-            color: var(--white);
-            font-size: 14px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            transition: all 0.2s;
-        }
-        .btn-wechat-footer:active {
-            transform: scale(0.98);
-        }
-        .btn-wechat-footer svg { width: 18px; height: 18px; }
 
         /* ==================== WeChat Modal ==================== */
         .modal-overlay {
@@ -2111,6 +2182,7 @@
                 <p class="assess-desc" id="assess-desc">选择最接近的一项</p>
             </div>
             <div class="tag-cloud" id="tag-cloud"></div>
+            <button class="tag-expand-toggle" id="tag-expand-toggle" onclick="toggleTagExpand()" aria-label="查看更多选项">查看更多 ▼</button>
             <div class="assess-nav">
                 <button class="btn-back" onclick="prevStep()" aria-label="上一步">
                     <svg viewBox="0 0 24 24" fill="none">
@@ -2138,199 +2210,204 @@
         <!-- ========== Result Screen ========== -->
         <section id="screen-result" class="screen">
             <div id="report-capture" class="report-capture">
-            <div class="result-hero">
-                <div class="result-label">AI 评估结果</div>
-                <div class="result-score"><span id="result-score">0</span><small>/100</small></div>
-                <div class="result-level-wrap" id="result-stars"></div>
-                <div class="result-type" id="result-type">复杂处理型 · <span class="gold-text">建议人工复核</span></div>
-                <div class="result-summary" id="result-summary"></div>
+
+            <!-- 核心评估卡片（始终可见） -->
+            <div class="result-hero result-hero-v2">
+                <div class="result-label">栩刺青 AI 智能评估</div>
+                <div class="result-score-v2">
+                    <div class="score-ring" id="score-ring">
+                        <svg viewBox="0 0 120 120" class="score-ring-svg">
+                            <circle cx="60" cy="60" r="52" fill="none" stroke="#E8DCB8" stroke-width="6"/>
+                            <circle cx="60" cy="60" r="52" fill="none" stroke="#C9A961" stroke-width="6" stroke-dasharray="0 327" stroke-linecap="round" id="score-arc" transform="rotate(-90 60 60)"/>
+                        </svg>
+                        <div class="score-ring-text">
+                            <span class="score-ring-num" id="result-score">0</span>
+                            <span class="score-ring-unit">分</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="result-type-v2" id="result-type">相对简单</div>
+                <div class="result-level-v2" id="result-stars">一级 · 0-25 分</div>
+                <div class="result-meta">
+                    <span class="result-meta-item" id="result-diff">处理难度：<strong>—</strong></span>
+                    <span class="result-meta-item" id="result-sessions">预计次数：<strong>—</strong></span>
+                </div>
                 <div class="result-tags" id="result-tags"></div>
             </div>
 
-            <!-- Customer Input Summary -->
-            <div class="customer-summary" id="customer-summary">
-                <div class="customer-summary-header">
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM7 8h10M7 12h10M7 16h6" stroke="#C9A961" stroke-width="1.5" stroke-linecap="round"/>
+            <!-- 折叠切换按钮 -->
+            <div class="expand-toggle-wrap">
+                <button class="expand-toggle" id="expand-toggle" onclick="toggleDetail()">
+                    <span id="expand-toggle-text">查看详细分析</span>
+                    <svg viewBox="0 0 24 24" fill="none" id="expand-icon">
+                        <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-                    <span>你填写的纹身情况</span>
-                </div>
-                <div class="customer-summary-subtitle">这部分可以直接截图发给师傅，方便快速了解你的情况</div>
-                <div class="customer-summary-list" id="customer-summary-list"></div>
-                <div class="customer-summary-note" id="customer-summary-note"></div>
-                <div class="customer-summary-share">完成后请截图发送给师傅</div>
+                </button>
             </div>
 
-            <div class="report-grid">
-                <div class="report-card risk">
-                    <div class="report-card-title">风险因素</div>
-                    <div class="report-list" id="risk-factors"></div>
+            <!-- 详细分析区（默认折叠） -->
+            <div class="detail-panel" id="detail-panel">
+                <!-- 当前纹身小结 -->
+                <div class="detail-section">
+                    <div class="detail-section-header">
+                        <span class="detail-section-icon">1</span>
+                        <span class="detail-section-title">当前纹身小结</span>
+                    </div>
+                    <div class="detail-section-body" id="detail-summary"></div>
                 </div>
-                <div class="report-card advantage">
-                    <div class="report-card-title">优势因素</div>
-                    <div class="report-list" id="advantages"></div>
+
+                <!-- AI分析 -->
+                <div class="detail-section">
+                    <div class="detail-section-header">
+                        <span class="detail-section-icon">2</span>
+                        <span class="detail-section-title">AI 智能分析</span>
+                    </div>
+                    <div class="detail-section-body" id="detail-ai-analysis"></div>
                 </div>
-                <div class="report-card suggestion">
-                    <div class="report-card-title">专业建议</div>
-                    <div class="report-suggestion" id="result-suggestion"></div>
-                    <div class="report-disclaimer">结果仅供初步参考，具体方案以人工面诊为准</div>
+
+                <!-- 优势因素 -->
+                <div class="detail-section">
+                    <div class="detail-section-header">
+                        <span class="detail-section-icon">3</span>
+                        <span class="detail-section-title">优势因素</span>
+                    </div>
+                    <div class="detail-section-body">
+                        <div class="report-list" id="advantages"></div>
+                    </div>
                 </div>
-            </div>
+
+                <!-- 影响因素 -->
+                <div class="detail-section">
+                    <div class="detail-section-header">
+                        <span class="detail-section-icon">4</span>
+                        <span class="detail-section-title">影响因素</span>
+                    </div>
+                    <div class="detail-section-body">
+                        <div class="report-list" id="risk-factors"></div>
+                    </div>
+                </div>
+
+                <!-- 预计方案 -->
+                <div class="detail-section">
+                    <div class="detail-section-header">
+                        <span class="detail-section-icon">5</span>
+                        <span class="detail-section-title">预计处理方案</span>
+                    </div>
+                    <div class="detail-section-body">
+                        <div class="recovery-list" id="recovery-list"></div>
+                    </div>
+                </div>
+
+                <!-- 预计周期 -->
+                <div class="detail-section">
+                    <div class="detail-section-header">
+                        <span class="detail-section-icon">6</span>
+                        <span class="detail-section-title">预计周期</span>
+                    </div>
+                    <div class="detail-section-body" id="detail-timeline"></div>
+                </div>
+
+                <!-- 注意事项 -->
+                <div class="detail-section">
+                    <div class="detail-section-header">
+                        <span class="detail-section-icon">7</span>
+                        <span class="detail-section-title">注意事项</span>
+                    </div>
+                    <div class="detail-section-body">
+                        <ul class="tips-list tips-list-v2" id="detail-notes"></ul>
+                    </div>
+                </div>
+
+                <!-- AI照片分析卡片（有照片时显示） -->
+                <div class="detail-section ai-card-v2" id="ai-card">
+                    <div class="detail-section-header">
+                        <span class="detail-section-icon">P</span>
+                        <span class="detail-section-title">AI 结合照片分析</span>
+                    </div>
+                    <div class="detail-section-body">
+                        <div class="ai-card-body-v2">
+                            <div class="ai-card-photo-v2">
+                                <img id="ai-card-photo-img" src="" alt="纹身照片">
+                            </div>
+                            <div class="ai-card-findings-v2">
+                                <div class="ai-finding-v2">
+                                    <span class="ai-finding-label-v2">颜色类型</span>
+                                    <span class="ai-finding-value-v2" id="ai-finding-color">—</span>
+                                </div>
+                                <div class="ai-finding-v2">
+                                    <span class="ai-finding-label-v2">色素深度</span>
+                                    <span class="ai-finding-value-v2" id="ai-finding-density">—</span>
+                                </div>
+                                <div class="ai-finding-v2">
+                                    <span class="ai-finding-label-v2">覆盖面积</span>
+                                    <span class="ai-finding-value-v2" id="ai-finding-coverage">—</span>
+                                </div>
+                                <div class="ai-finding-v2">
+                                    <span class="ai-finding-label-v2">皮肤状态</span>
+                                    <span class="ai-finding-value-v2" id="ai-finding-skin">—</span>
+                                </div>
+                                <div class="ai-finding-v2">
+                                    <span class="ai-finding-label-v2">分析提示</span>
+                                    <span class="ai-finding-value-v2" id="ai-finding-warning">—</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
+            </div><!-- /report-capture -->
+
+            <!-- 保存报告 -->
             <button class="btn-save-report" onclick="saveReportImage()">
                 <svg viewBox="0 0 24 24" fill="none">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                保存报告图片
+                保存评估报告图片
             </button>
 
-            <!-- AI Image Analysis Card -->
-            <div class="ai-card" id="ai-card">
-                <div class="ai-card-header">
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M9 12l2 2 4-4M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z" stroke="#C9A961" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    <span class="ai-card-title">AI结合照片分析</span>
-                </div>
-                <div class="ai-card-body">
-                    <div class="ai-card-photo">
-                        <img id="ai-card-photo-img" src="" alt="纹身照片">
-                    </div>
-                    <div class="ai-card-findings">
-                        <div class="ai-finding">
-                            <span class="ai-finding-label">颜色类型</span>
-                            <span class="ai-finding-value" id="ai-finding-color">—</span>
-                        </div>
-                        <div class="ai-finding">
-                            <span class="ai-finding-label">色素深度</span>
-                            <span class="ai-finding-value" id="ai-finding-density">—</span>
-                        </div>
-                        <div class="ai-finding">
-                            <span class="ai-finding-label">覆盖面积</span>
-                            <span class="ai-finding-value" id="ai-finding-coverage">—</span>
-                        </div>
-                        <div class="ai-finding">
-                            <span class="ai-finding-label">皮肤状态</span>
-                            <span class="ai-finding-value" id="ai-finding-skin">—</span>
-                        </div>
-                        <div class="ai-finding">
-                            <span class="ai-finding-label">分析提示</span>
-                            <span class="ai-finding-value" id="ai-finding-warning">—</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="recovery-section">
-                <div class="section-label">
+            <!-- 客户转化模块 -->
+            <div class="convert-section">
+                <div class="convert-header">
                     <span class="section-label-line"></span>
-                    <span class="section-label-text">恢复路径规划</span>
+                    <span class="convert-title">获取专业评估</span>
                 </div>
-                <div class="recovery-list" id="recovery-list"></div>
+                <div class="convert-cards">
+                    <button class="convert-card" onclick="goToPhoto()">
+                        <div class="convert-card-icon photo-icon">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                <circle cx="12" cy="13" r="3" stroke="currentColor" stroke-width="1.5"/>
+                            </svg>
+                        </div>
+                        <div class="convert-card-text">
+                            <div class="convert-card-title">上传高清纹身照片</div>
+                            <div class="convert-card-desc">拍摄清晰近照，AI 结合照片精准分析</div>
+                        </div>
+                    </button>
+                    <button class="convert-card" onclick="openWeChatModal()">
+                        <div class="convert-card-icon wechat-icon">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="convert-card-text">
+                            <div class="convert-card-title">添加微信 · 一对一专业评估</div>
+                            <div class="convert-card-desc">栩刺青资深师傅免费看图、答疑</div>
+                        </div>
+                    </button>
+                </div>
+                <div class="convert-brand">
+                    栩刺青 · 专业纹身修复评估
+                </div>
             </div>
 
+            <!-- 恢复提示 -->
             <div class="recovery-tip">
                 <svg viewBox="0 0 24 24" fill="none">
                     <path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.2 1 2v.3h6V17c0-.8.4-1.5 1-2A7 7 0 0 0 12 2z" stroke="#C9A961" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                <span>恢复需要循序渐进，先做初期评估看看实际效果，届时您自己就能判断后续节奏。</span>
-            </div>
-
-            <div class="result-case">
-                <div class="section-label">
-                    <span class="section-label-line"></span>
-                    <span class="section-label-text">相似案例对比</span>
-                </div>
-                <div class="result-case-compare">
-                    <div class="result-case-img">
-                        <img src="https://aka.doubaocdn.com/s/U82NGMxoa2" alt="洗前">
-                        <div class="result-case-badge">
-                            <span class="dot" style="background:#4A4A4A;"></span>洗前
-                        </div>
-                    </div>
-                    <div class="result-case-img">
-                        <img src="https://aka.doubaocdn.com/s/r185j51gDw" alt="恢复后">
-                        <div class="result-case-badge">
-                            <span class="dot" style="background:#C9A961;"></span>恢复后
-                        </div>
-                    </div>
-                </div>
-                    <div class="result-case-info">腰腹彩色图案 · 恢复过程对比</div>
-            </div>
-
-            <div class="cta-bar">
-                <div class="cta-bar-buttons">
-                    <button class="btn-wechat" onclick="openWeChatModal()">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        上传高清照片进一步分析
-                    </button>
-                    <a href="tel:13800138000" class="btn-call" aria-label="拨打电话">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" stroke="#1A1A1A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </a>
-                </div>
-                <div class="cta-bar-hint">添加微信专业评估，师傅一对一免费看图</div>
-            </div>
-
-            <div class="info-section">
-                <div class="info-card">
-                    <div class="info-card-title">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="#C9A961" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        术后注意事项
-                    </div>
-                    <ul class="tips-list">
-                        <li>每次间隔充足恢复期，给皮肤代谢时间</li>
-                        <li>术后注意防晒，避免色素沉着</li>
-                        <li>恢复期间忌辛辣刺激，恢复更快</li>
-                        <li>个人体质不同，效果会有差异</li>
-                        <li>评估结果仅供参考，具体以面诊为准</li>
-                    </ul>
-                </div>
-
-                <div class="info-card">
-                    <div class="info-card-title">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <path d="M9 12l2 2 4-4M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z" stroke="#C9A961" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        常见问题
-                    </div>
-                    <div class="faq-item">
-                        <div class="faq-q">疼不疼？</div>
-                        <div class="faq-a">大多数人都能承受，类似橡皮筋弹皮肤的感觉，怕疼可以敷麻药。</div>
-                    </div>
-                    <div class="faq-item">
-                        <div class="faq-q">会不会留疤？</div>
-                        <div class="faq-a">正常操作不会留疤，与个人体质和术后护理也有关系。</div>
-                    </div>
-                    <div class="faq-item">
-                        <div class="faq-q">夏天能洗吗？</div>
-                        <div class="faq-a">可以，注意防晒，避免暴晒即可。</div>
-                    </div>
-                    <div class="faq-item">
-                        <div class="faq-q">洗完能洗澡吗？</div>
-                        <div class="faq-a">可以，数小时后即可正常洗澡，避免搓揉即可。</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="footer-trust">
-                <div class="footer-trust-text">
-                    <span>专业设备</span><span class="sep">/</span>
-                    <span>资深技师</span><span class="sep">/</span>
-                    <span>真实案例</span>
-                </div>
-                <button class="btn-wechat-footer" onclick="openWeChatModal()">
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    添加微信专业评估
-                </button>
+                <span>以上评估由 AI 生成，仅供参考。具体方案请以栩刺青师傅人工面诊为准。</span>
             </div>
         </section>
     </div>
@@ -2987,75 +3064,96 @@
             {
                 key: 'type',
                 title: '你的纹身属于哪种类型？',
-                desc: '选择最接近的一项',
+                desc: '选择最接近的一项，如果不确定可以选择"其他类型"。',
                 multi: false,
                 options: [
-                    { value: 'black_gray', text: '黑灰写实', impact: '色料分散、层次分明，通常更容易处理' },
+                    { value: 'black_gray', text: '黑灰写实', impact: '黑灰色调为主，层次分明，评估路径相对清晰' },
                     { value: 'traditional', text: '欧美传统', impact: '色料堆积较厚、线条粗重，需分层处理' },
                     { value: 'new_traditional', text: '新传统', impact: '色彩丰富但层次清晰，难度中等' },
-                    { value: 'line_text', text: '线条文字', impact: '线条为主、色料集中，处理相对直接' },
-                    { value: 'colorful', text: '彩色复杂', impact: '多色叠加，不同颜色需不同参数' },
-                    { value: 'cover', text: '覆盖纹身', impact: '可能有多层旧色料，最复杂，建议面诊' }
+                    { value: 'japanese', text: '日式传统', impact: '大面积高饱和色块，需精细分区处理' },
+                    { value: 'line', text: '线条纹身', impact: '以线条为主，色料集中，处理相对直接' },
+                    { value: 'lettering', text: '花体文字', impact: '文字类纹身，色料通常较浅，恢复较快' },
+                    { value: 'geometric', text: '几何图案', impact: '规则图形，色料均匀，评估难度适中' },
+                    { value: 'dotwork', text: '点刺风格', impact: '点状色料分布，密度影响处理难度' },
+                    { value: 'watercolor', text: '水彩风格', impact: '渐变色叠加，不同颜色需不同参数' },
+                    { value: 'minimal', text: '小清新简单图案', impact: '面积小、色料浅，通常是最容易处理的类型' },
+                    { value: 'cover', text: '遮盖纹身', impact: '底层可能有多层旧色料，情况最复杂，建议面诊' },
+                    { value: 'retouch', text: '修改补色纹身', impact: '局部修改或补色，需确认新旧色料叠加情况' },
+                    { value: 'other', text: '其他类型', impact: '不属于以上分类，建议上传照片由师傅判断' }
                 ]
             },
             {
                 key: 'colors',
-                title: '纹身里有哪些颜色？',
-                desc: '可以多选，颜色越复杂越需要谨慎评估',
+                title: '纹身里面有哪些颜色？',
+                desc: '可以多选，颜色越复杂，评估难度越高。',
                 multi: true,
                 options: [
-                    { value: 'black', text: '黑色', impact: '最常见色料，处理路径成熟' },
-                    { value: 'gray', text: '灰色', impact: '灰色过渡，通常和黑色一起处理' },
-                    { value: 'red', text: '红色', impact: '红色对某些设备反应较慢' },
-                    { value: 'blue', text: '蓝色', impact: '蓝色通常需要更多次数' },
-                    { value: 'green', text: '绿色', impact: '绿色是较难处理的颜色之一' },
-                    { value: 'yellow', text: '黄色', impact: '黄色最难淡化，需要更多耐心' },
-                    { value: 'purple', text: '紫色', impact: '紫色色料可能逐渐变色' }
+                    { value: 'black', text: '黑色', impact: '最常见色料，处理路径最成熟' },
+                    { value: 'gray', text: '灰色', impact: '灰色过渡色调，通常和黑色一起处理' },
+                    { value: 'red', text: '红色', impact: '红色对某些设备反应较慢，需更多耐心' },
+                    { value: 'orange', text: '橙色', impact: '橙色色料较顽固，需要针对性参数' },
+                    { value: 'yellow', text: '黄色', impact: '黄色是最难淡化的颜色之一，需多次处理' },
+                    { value: 'green', text: '绿色', impact: '绿色是较难处理的颜色之一，需专业判断' },
+                    { value: 'blue', text: '蓝色', impact: '蓝色通常需要更多次数和特定参数' },
+                    { value: 'purple', text: '紫色', impact: '紫色色料可能随时间变色，需谨慎评估' },
+                    { value: 'pink', text: '粉色', impact: '粉色色料较温和，但需要关注褪色均匀度' },
+                    { value: 'white', text: '白色', impact: '白色最难判断，通常隐藏在皮肤下难以识别' },
+                    { value: 'skin_tone', text: '肤色肉色', impact: '肤色遮盖类纹身，与皮肤颜色接近，判断难度高' },
+                    { value: 'multi_mix', text: '多色混合', impact: '多种颜色混合叠加，需逐一分析各色料特性' },
+                    { value: 'unsure', text: '不确定', impact: '无法准确判断颜色，建议上传高清照片由师傅确认' }
                 ]
             },
             {
-                key: 'density',
-                title: '色料密度如何？',
-                desc: '核心是单位区域的色料含量',
+                key: 'status',
+                title: '你的纹身目前是什么状态？',
+                desc: '不同状态影响色料层次判断和方案制定。',
                 multi: false,
                 options: [
-                    { value: 'low', text: '低饱和', impact: '色料较浅，通常更容易逐步淡化' },
-                    { value: 'medium', text: '正常密度', impact: '标准密度，按常规节奏处理' },
-                    { value: 'high', text: '高饱和', impact: '色料密集，需更谨慎地分层评估' }
+                    { value: 'original', text: '原始纹身', impact: '没有经过任何处理，色料层次最清晰' },
+                    { value: 'deepened', text: '加深过', impact: '在原纹身上加深过颜色，色料更密集' },
+                    { value: 'covered', text: '覆盖旧纹身', impact: '新纹身盖住旧纹身，底层可能有多层旧色料，最复杂' },
+                    { value: 'modified', text: '修改过', impact: '局部修改或调整过图案，需确认修改区域' },
+                    { value: 'washed', text: '已经洗过', impact: '做过清洗处理，色料已部分淡化但可能不均匀' }
                 ]
             },
             {
-                key: 'cover',
-                title: '是否有覆盖或修改？',
-                desc: '覆盖可能意味着内部存在多层色料',
+                key: 'saturation',
+                title: '你的纹身颜色深浅如何？',
+                desc: '饱和度直接影响处理难度和所需次数。',
                 multi: false,
                 options: [
-                    { value: 'none', text: '无覆盖', impact: '没有覆盖历史，色料层次清晰' },
-                    { value: 'partial', text: '局部修改', impact: '局部修改，需确认底层色料' },
-                    { value: 'full', text: '完全覆盖', impact: '完全覆盖，可能有多层旧色料' }
+                    { value: 'light', text: '浅色', impact: '色料较浅，通常更容易逐步淡化，所需次数较少' },
+                    { value: 'normal', text: '正常', impact: '标准深度，按常规节奏分层处理' },
+                    { value: 'deep', text: '深色', impact: '色料较深，需要更长的恢复周期和更多次数' },
+                    { value: 'high_sat', text: '高饱和填色', impact: '色料密集填满，需更谨慎地分层评估和推进' }
+                ]
+            },
+            {
+                key: 'location',
+                title: '你的纹身在哪里？',
+                desc: '位置影响代谢速度、恢复周期和护理难度。',
+                multi: false,
+                options: [
+                    { value: 'arm', text: '手臂（小臂 / 大臂 / 肩膀）', impact: '手臂血液循环好，恢复较快，常见部位' },
+                    { value: 'leg', text: '腿部（大腿 / 小腿 / 脚踝）', impact: '腿部代谢稍慢，恢复周期略长' },
+                    { value: 'torso', text: '胸口腹部', impact: '躯干区域，皮肤张力变化较大，需关注恢复' },
+                    { value: 'back', text: '后背', impact: '后背面积大，血液循环一般，护理不太方便' },
+                    { value: 'neck', text: '脖子', impact: '皮肤较薄，代谢敏感，需格外注意护理' },
+                    { value: 'hand', text: '手部 / 手指', impact: '摩擦多、代谢特殊，恢复难度较高' },
+                    { value: 'foot', text: '脚部', impact: '血液循环较差，恢复最慢，护理难度大' },
+                    { value: 'joint', text: '关节位置（膝盖 / 手肘，恢复慢）', impact: '关节活动频繁，恢复不稳定，需要更长时间' },
+                    { value: 'other_loc', text: '其他位置', impact: '不在以上分类中，建议上传照片由师傅判断' }
                 ]
             },
             {
                 key: 'skin',
                 title: '皮肤状态如何？',
-                desc: '凸起不一定代表洗不掉，但需要人工复核',
+                desc: '凸起不一定代表洗不掉，但需要人工复核。',
                 multi: false,
                 options: [
-                    { value: 'flat', text: '平整', impact: '皮肤平整，有利于判断色料边界' },
-                    { value: 'raised', text: '轻微凸起', impact: '需区分色料堆积还是皮肤因素' },
-                    { value: 'scar_like', text: '明显凸起 / 疤痕感', impact: '建议先评估皮肤承受度' }
-                ]
-            },
-            {
-                key: 'location',
-                title: '纹身位于哪里？',
-                desc: '位置主要影响恢复速度和护理难度',
-                multi: false,
-                options: [
-                    { value: 'torso', text: '躯干', impact: '躯干恢复相对稳定' },
-                    { value: 'arm', text: '手臂', impact: '手臂常见部位，恢复较好' },
-                    { value: 'leg', text: '腿部', impact: '腿部代谢稍慢，恢复周期略长' },
-                    { value: 'finger', text: '手指 / 脚趾', impact: '摩擦多、代谢特殊，恢复最难' }
+                    { value: 'flat', text: '平整', impact: '皮肤平整，有利于判断色料边界和恢复反应' },
+                    { value: 'raised', text: '轻微凸起', impact: '需区分是色料堆积还是皮肤因素，建议师傅面诊' },
+                    { value: 'scar_like', text: '明显凸起 / 疤痕感', impact: '建议先评估皮肤承受度，再判断是否适合处理' }
                 ]
             }
         ];
@@ -3134,9 +3232,13 @@
 
             const checkSvg = '<span class="tag-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5 9-9" stroke="#0A0A0A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
 
+            const SHOW_COUNT = 6;
+            const needCollapse = step.options.length > SHOW_COUNT;
+
             step.options.forEach((opt, idx) => {
                 const tag = document.createElement('button');
                 tag.className = 'tag';
+                if (needCollapse && idx >= SHOW_COUNT) tag.classList.add('tag-collapsed');
                 if (opt.impact) tag.classList.add('tag-with-desc');
                 if (selected.includes(idx)) tag.classList.add('selected');
                 tag.innerHTML = checkSvg + '<span class="tag-text">' + opt.text + '</span>' +
@@ -3144,6 +3246,17 @@
                 tag.onclick = () => toggleTag(idx);
                 cloud.appendChild(tag);
             });
+
+            // Toggle expand button for long option lists
+            const toggle = document.getElementById('tag-expand-toggle');
+            if (needCollapse) {
+                toggle.style.display = 'block';
+                toggle.textContent = '查看更多 (' + (step.options.length - SHOW_COUNT) + ') ▼';
+                cloud.classList.remove('expanded');
+            } else {
+                toggle.style.display = 'none';
+                cloud.classList.remove('expanded');
+            }
 
             // Button text
             const btnText = document.getElementById('btn-next-text');
@@ -3165,6 +3278,22 @@
                 answers[currentStep] = [idx];
             }
             renderStep();
+        }
+
+        function toggleTagExpand() {
+            const cloud = document.getElementById('tag-cloud');
+            const toggle = document.getElementById('tag-expand-toggle');
+            if (cloud.classList.contains('expanded')) {
+                cloud.classList.remove('expanded');
+                toggle.textContent = toggle.textContent.replace('收起 ▲', '查看更多 ▼');
+            } else {
+                cloud.classList.add('expanded');
+                toggle.textContent = toggle.textContent.replace('查看更多 ▼', '收起 ▲');
+                // toggle.textContent may contain count, handle generically
+                if (toggle.textContent.indexOf('收起') === -1) {
+                    toggle.textContent = '收起 ▲';
+                }
+            }
         }
 
         function nextStep() {
@@ -3309,15 +3438,52 @@
             ];
         }
 
+        // ==================== Toggle Detail Panel ====================
+        let detailExpanded = false;
+
+        function toggleDetail() {
+            detailExpanded = !detailExpanded;
+            const panel = document.getElementById('detail-panel');
+            const toggle = document.getElementById('expand-toggle');
+            const text = document.getElementById('expand-toggle-text');
+
+            if (detailExpanded) {
+                panel.classList.add('show');
+                toggle.classList.add('expanded');
+                text.textContent = '收起详细分析';
+            } else {
+                panel.classList.remove('show');
+                toggle.classList.remove('expanded');
+                text.textContent = '查看详细分析';
+            }
+        }
+
+        function goToPhoto() {
+            showScreen('screen-photo');
+        }
+
         function calculateResult() {
             const assessmentInput = getAssessmentInput();
             const report = window.TattooAnalysisCore.generateReport(assessmentInput);
 
-            document.getElementById('result-score').textContent = report.totalScore;
-            document.getElementById('result-stars').textContent = `${report.level.label} · ${report.level.range} 分`;
-            document.getElementById('result-type').innerHTML = `${report.level.title} · <span class="gold-text">专业评估建议</span>`;
-            document.getElementById('result-summary').textContent = report.suggestion;
+            // Score ring arc
+            const score = report.totalScore;
+            const arc = document.getElementById('score-arc');
+            const circumference = 2 * Math.PI * 52; // ~327
+            const dashLength = (score / 100) * circumference;
+            arc.setAttribute('stroke-dasharray', dashLength + ' ' + circumference);
 
+            document.getElementById('result-score').textContent = score;
+            document.getElementById('result-stars').textContent = report.level.label + ' · ' + report.level.range + ' 分';
+            document.getElementById('result-type').textContent = report.level.title;
+
+            // Difficulty & sessions
+            const diffMap = { 1: '简单', 2: '中等', 3: '较难', 4: '复杂' };
+            const sessionsMap = { 1: '1-2 次', 2: '2-4 次', 3: '5-8 次', 4: '8 次以上' };
+            document.getElementById('result-diff').innerHTML = '处理难度：<strong>' + (diffMap[report.level.level] || '待评估') + '</strong>';
+            document.getElementById('result-sessions').innerHTML = '预计次数：<strong>' + (sessionsMap[report.level.level] || '待评估') + '</strong>';
+
+            // Tags
             const tagWrap = document.getElementById('result-tags');
             tagWrap.innerHTML = '';
             report.tags.forEach(text => {
@@ -3326,14 +3492,28 @@
                 tagWrap.appendChild(tag);
             });
 
-            renderReportList('risk-factors', report.riskFactors, '暂未识别到突出的高风险因素，仍建议结合照片人工复核。');
-            renderReportList('advantages', report.advantages, '当前选择未形成明显优势标签，需要更多照片和面诊信息判断。');
-            document.getElementById('result-suggestion').textContent = report.suggestion;
+            // Detail panel content
+            // 1. 当前纹身小结
+            const selSummary = window.TattooAnalysisCore.summarizeSelections(steps, answers);
+            const summaryLines = [];
+            selSummary.forEach(g => {
+                summaryLines.push('<strong>' + g.title + '：</strong>' + g.items.join('、'));
+            });
+            document.getElementById('detail-summary').innerHTML = summaryLines.join('<br>');
 
-            const selectionSummary = window.TattooAnalysisCore.summarizeSelections(steps, answers);
-            const combinedInsight = window.TattooAnalysisCore.buildCombinedInsight(selectionSummary, photoAnalysis);
-            renderCustomerSummary(selectionSummary, combinedInsight);
+            // 2. AI 智能分析
+            const combinedInsight = window.TattooAnalysisCore.buildCombinedInsight(selSummary, photoAnalysis);
+            document.getElementById('detail-ai-analysis').innerHTML =
+                '<p style="margin-bottom:8px;">' + report.suggestion + '</p>' +
+                '<p style="color:var(--gray-500);font-size:12px;">' + combinedInsight.text + '</p>';
 
+            // 3. 优势因素
+            renderReportList('advantages', report.advantages, '当前问卷选项未形成明显优势标签，请上传照片获取更精准判断。');
+
+            // 4. 影响因素
+            renderReportList('risk-factors', report.riskFactors, '暂未识别到突出的高风险因素，仍建议结合照片由师傅人工复核。');
+
+            // 5. 预计处理方案
             const recoveryList = document.getElementById('recovery-list');
             recoveryList.innerHTML = '';
             getRecoveryPlan(report.level.level).forEach((phase, idx) => {
@@ -3349,6 +3529,27 @@
                 recoveryList.appendChild(item);
             });
 
+            // 6. 预计周期
+            const timelineMap = {
+                1: '预计总周期 <strong>2-4 个月</strong>，每次间隔 6-8 周恢复期。个人体质不同，实际周期可能有差异。',
+                2: '预计总周期 <strong>4-8 个月</strong>，每次间隔 8-10 周恢复期。需根据每次恢复情况动态调整节奏。',
+                3: '预计总周期 <strong>8-14 个月</strong>，每次间隔 8-12 周恢复期。彩色区域需单独判断节奏，建议分区域交替推进。',
+                4: '预计总周期 <strong>12 个月以上</strong>，每次间隔 10-14 周以上。需先由师傅面诊确认适应症后制定长期方案。'
+            };
+            document.getElementById('detail-timeline').innerHTML = timelineMap[report.level.level] || timelineMap[1];
+
+            // 7. 注意事项
+            const notes = [
+                '每次处理间隔充足的恢复期，给皮肤代谢和修复的时间',
+                '术后 2 周内严格防晒，避免紫外线导致色素沉着',
+                '恢复期间忌辛辣刺激食物和酒精，有助于加快恢复',
+                '个人体质和代谢速度不同，淡化效果会有个体差异',
+                'AI 评估结果仅供参考，具体方案以栩刺青师傅人工面诊为准',
+                '如有凸起/疤痕体质，请在面诊时主动告知师傅'
+            ];
+            document.getElementById('detail-notes').innerHTML = notes.map(n => '<li>' + n + '</li>').join('');
+
+            // AI photo card
             const aiCard = document.getElementById('ai-card');
             if (photoAnalysis) {
                 aiCard.classList.add('show');
@@ -3375,6 +3576,12 @@
             } else {
                 aiCard.classList.remove('show');
             }
+
+            // Reset detail panel to collapsed for new result
+            detailExpanded = false;
+            document.getElementById('detail-panel').classList.remove('show');
+            document.getElementById('expand-toggle').classList.remove('expanded');
+            document.getElementById('expand-toggle-text').textContent = '查看详细分析';
         }
 
         // ==================== Save Report Image ====================
