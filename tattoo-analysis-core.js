@@ -20,6 +20,39 @@
         white: '白色'
     };
 
+    const assessmentRules = {
+        type: { black_gray: 5, traditional: 10, new_traditional: 10, line_text: 5, colorful: 13, cover: 15 },
+        color: { black: 0, gray: 0, red: 3, blue: 5, green: 8, yellow: 10, purple: 8 },
+        density: { low: 5, medium: 15, high: 25 },
+        cover: { none: 0, partial: 10, full: 20 },
+        skin: { flat: 0, raised: 7, scar_like: 15 },
+        location: { torso: 0, arm: 3, leg: 5, finger: 10 }
+    };
+
+    const assessmentLabels = {
+        type: {
+            black_gray: '黑灰写实',
+            traditional: '欧美传统',
+            new_traditional: '新传统',
+            line_text: '线条文字',
+            colorful: '彩色复杂',
+            cover: '覆盖纹身'
+        },
+        color: {
+            black: '黑色',
+            gray: '灰色',
+            red: '红色',
+            blue: '蓝色',
+            green: '绿色',
+            yellow: '黄色',
+            purple: '紫色'
+        },
+        density: { low: '低饱和', medium: '正常密度', high: '高饱和' },
+        cover: { none: '无覆盖', partial: '局部修改', full: '完全覆盖' },
+        skin: { flat: '皮肤平整', raised: '轻微凸起', scar_like: '明显凸起' },
+        location: { torso: '躯干', arm: '手臂', leg: '腿部', finger: '手指/脚趾' }
+    };
+
     function numberOr(value, fallback) {
         return Number.isFinite(value) ? value : fallback;
     }
@@ -123,8 +156,11 @@
         const sat = numberOr(input.sat, 0);
         const val = numberOr(input.val, 0);
         const isSkinPixel = Boolean(input.isSkinPixel);
-        const localSkinCount = numberOr(input.localSkinCount, 0);
+        const localMeanS = numberOr(input.localMeanS, 0);
+        const hasLocalSkinCount = Number.isFinite(input.localSkinCount);
+        const localSkinCount = hasLocalSkinCount ? numberOr(input.localSkinCount, 0) : 49;
         const localMeanV = numberOr(input.localMeanV, 0.55);
+        const skinMeanV = numberOr(input.skinMeanV, localMeanV);
 
         // Max pixels in 7x7 local window
         const LOCAL_WINDOW_SIZE = 49;
@@ -146,12 +182,26 @@
             scarThresholdVal = 0.90 - calibration.scarWeight * 0.03;
         }
 
-        // 跳过皮肤像素
+        // 跳过皮肤像素（relaxedMode 例外：褪色纹身可能被皮肤检测误标为皮肤）
         if (isSkinPixel) {
-            if (val > scarThresholdVal && sat < 0.13) {
-                return { isInk: false, isScar: true, color: null };
+            if (calibration.relaxedMode) {
+                const darkness = Math.max(localMeanV, skinMeanV) - val;
+                const skinDensity = localSkinCount / LOCAL_WINDOW_SIZE;
+                // 褪色纹身像素：被误标为皮肤但略暗、低饱和 → 可能是残留墨水
+                if (localSkinCount >= 25 && skinDensity >= skinDensityThreshold &&
+                    darkness >= darknessThreshold && sat < 0.20) {
+                    // 继续往下，按墨水像素分类
+                } else if (val > scarThresholdVal && sat < 0.13) {
+                    return { isInk: false, isScar: true, color: null };
+                } else {
+                    return { isInk: false, isScar: false, color: null };
+                }
+            } else {
+                if (val > scarThresholdVal && sat < 0.13) {
+                    return { isInk: false, isScar: true, color: null };
+                }
+                return { isInk: false, isScar: false, color: null };
             }
-            return { isInk: false, isScar: false, color: null };
         }
 
         // 关键：周围皮肤密度不足 → 衣物/背景边界/皮肤纹理，排除
@@ -159,14 +209,17 @@
         // 实测：干净皮肤误检像素 avg_lsc≈15(30%)，真纹身边缘 avg_lsc≈35+(70%)
         const skinDensity = localSkinCount / LOCAL_WINDOW_SIZE;
 
-        if (localSkinCount < 25 || skinDensity < skinDensityThreshold) {
+        if (hasLocalSkinCount && (localSkinCount < 25 || skinDensity < skinDensityThreshold)) {
             return { isInk: false, isScar: false, color: null };
         }
 
         // 关键：必须比周围皮肤显著更深，排除阴影/皮肤纹理/浅色衣物
         // 实测：干净皮肤纹理 darkness≈0.05-0.09，真纹身 ink darkness≈0.15-0.35
-        const darkness = localMeanV - val;
+        const darkness = Math.max(localMeanV, skinMeanV) - val;
         if (darkness < darknessThreshold) {
+            return { isInk: false, isScar: false, color: null };
+        }
+        if (!hasLocalSkinCount && sat < Math.max(0.50, localMeanS + 0.18)) {
             return { isInk: false, isScar: false, color: null };
         }
 
@@ -176,7 +229,10 @@
             return { isInk: false, isScar: true, color: null };
         }
 
-        const isInk = color !== 'faded_black' || (val < 0.35 && sat < 0.18);
+        // relaxedMode：已通过皮肤密度+暗度检查的像素，即使颜色被归为faded_black也应计入（褪色残留）
+        const isInk = calibration.relaxedMode
+            ? true
+            : (color !== 'faded_black' || (val < 0.35 && sat < 0.18));
 
         return {
             isInk,
@@ -197,7 +253,7 @@
         if (skinCoverage < 0.25 && totalSkinPixels < 15000) {
             return '皮肤区域过小，请拍摄近距离、无遮挡的纹身照片';
         }
-        if (edgeBackgroundRatio > 0.50 || nonSkinRegionRatio > 0.70) {
+        if (edgeBackgroundRatio > 0.45 || nonSkinRegionRatio > 0.50) {
             return '背景较复杂，请使用单张、近距离、无遮挡的纹身照片';
         }
         if (skinCoverage < 0.30 && inkPixels < totalSkinPixels * 0.003) {
@@ -220,8 +276,8 @@
         const sceneWarning = createSceneWarning(metrics.scene || {});
 
         // 稳定性判断：至少有足够数量的墨水像素
-        const minInkPixels = Math.max(20, totalRoiPixels * 0.001);
-        const stableInk = inkPixels >= minInkPixels && inkCoverage >= 0.003;
+        const minInkPixels = Math.max(120, totalRoiPixels * 0.001);
+        const stableInk = inkPixels >= minInkPixels && inkCoverage >= 0.01;
 
         // 颜色统计 - 使用加权计数
         const colorCounts = metrics.colorCounts || {};
@@ -260,14 +316,14 @@
         let coverageLabel = '几乎无';
         if (stableInk) {
             const footprint = Math.max(inkCoverage, inkFootprintCoverage);
-            if (footprint < 0.04) coverageLabel = '小面积';
+            if (footprint < 0.05) coverageLabel = '小面积';
             else if (footprint < 0.12) coverageLabel = '中等面积';
             else if (footprint < 0.22) coverageLabel = '较大面积';
             else coverageLabel = '大面积';
         }
 
         // 不确定场景
-        const uncertainScene = !stableInk && Boolean(sceneWarning) && dominantCoverage < 0.01;
+        const uncertainScene = Boolean(sceneWarning) && (!stableInk || dominantCoverage < 0.01);
         if (uncertainScene) {
             colorType = '未检测到稳定纹身色素';
             coverageLabel = '照片复杂，无法判断';
@@ -363,9 +419,9 @@
     }
 
     function buildCombinedInsight(selectionSummary, photoAnalysis) {
-        const conditionGroup = (selectionSummary || []).find(group => group.key === 'conditions');
+        const conditionGroup = (selectionSummary || []).find(group => group.key === 'conditions' || group.key === 'skin');
         const hasConditionConcern = Boolean(conditionGroup && conditionGroup.items.some(item => {
-            return !/以上都没有|没有|无|none/i.test(String(item));
+            return !/以上都没有|没有|无|none|平整/i.test(String(item));
         }));
         let text = photoAnalysis
             ? '已结合照片和你填写的信息进行初步判断。'
@@ -374,6 +430,85 @@
             text += '你勾选了皮肤状态相关情况，即使照片看起来正常，建议师傅重点复核。';
         }
         return { hasConditionConcern, text };
+    }
+
+    function getDifficultyLevel(score) {
+        const totalScore = Math.max(0, Math.min(100, Number(score) || 0));
+        if (totalScore <= 25) return { level: 1, label: '一级', title: '相对简单', range: '0-25' };
+        if (totalScore <= 50) return { level: 2, label: '二级', title: '普通类型', range: '26-50' };
+        if (totalScore <= 75) return { level: 3, label: '三级', title: '复杂处理型', range: '51-75' };
+        return { level: 4, label: '四级', title: '高复杂案例', range: '76-100' };
+    }
+
+    function calculateAssessment(input = {}) {
+        const colors = Array.isArray(input.colors) ? input.colors : [];
+        const colorScore = colors.reduce((sum, color) => sum + (assessmentRules.color[color] || 0), 0)
+            + (colors.length >= 2 ? 5 : 0);
+        const breakdown = {
+            type: assessmentRules.type[input.type] || 0,
+            color: Math.min(15, colorScore),
+            density: assessmentRules.density[input.density] || 0,
+            cover: assessmentRules.cover[input.cover] || 0,
+            skin: assessmentRules.skin[input.skin] || 0,
+            location: assessmentRules.location[input.location] || 0
+        };
+        const rawScore = Object.values(breakdown).reduce((sum, value) => sum + value, 0);
+        const totalScore = Math.min(100, rawScore);
+        return { breakdown, totalScore, level: getDifficultyLevel(totalScore) };
+    }
+
+    function generateReport(input = {}) {
+        const assessment = calculateAssessment(input);
+        const colors = Array.isArray(input.colors) ? input.colors : [];
+        const tags = [
+            assessmentLabels.type[input.type],
+            ...colors.map(color => assessmentLabels.color[color]),
+            assessmentLabels.density[input.density],
+            assessmentLabels.cover[input.cover],
+            assessmentLabels.skin[input.skin],
+            assessmentLabels.location[input.location]
+        ].filter(Boolean).map(label => `#${label}`);
+
+        const riskFactors = [];
+        if (input.density === 'high') {
+            riskFactors.push({ title: '色料密度', text: '高饱和色料需要更谨慎地分层评估，通常不适合用单次结果判断整体方案。' });
+        }
+        if (input.cover === 'partial' || input.cover === 'full' || input.type === 'cover') {
+            riskFactors.push({ title: '覆盖历史', text: '覆盖或修改纹身可能存在多层色料，建议由师傅面诊确认底层颜色。' });
+        }
+        if (colors.some(color => ['red', 'green', 'yellow', 'purple', 'blue'].includes(color))) {
+            riskFactors.push({ title: '彩色色料', text: '彩色色料对设备参数和恢复节奏更敏感，需要结合肤质制定方案。' });
+        }
+        if (input.skin === 'raised' || input.skin === 'scar_like') {
+            riskFactors.push({ title: '皮肤状态', text: '凸起或疑似疤痕区域需要先评估皮肤承受度，再判断是否适合继续处理。' });
+        }
+        if (input.location === 'finger') {
+            riskFactors.push({ title: '恢复位置', text: '手指和脚趾代谢与摩擦情况特殊，恢复过程需要更细致观察。' });
+        }
+
+        const advantages = [];
+        if (input.cover === 'none') {
+            advantages.push({ title: '无覆盖', text: '没有覆盖历史时，色料层次通常更容易被判断。' });
+        }
+        if (input.density === 'low') {
+            advantages.push({ title: '低密度', text: '色料较浅时，初步方案通常更容易循序推进。' });
+        }
+        if (input.skin === 'flat') {
+            advantages.push({ title: '皮肤状态', text: '皮肤平整有利于判断颜色边界和恢复反应。' });
+        }
+        if (colors.length > 0 && colors.every(color => color === 'black' || color === 'gray')) {
+            advantages.push({ title: '颜色结构', text: '黑灰类色料的评估路径相对清晰。' });
+        }
+
+        const suggestion = `${assessment.level.title}。建议先上传清晰近照，由专业师傅结合颜色、密度、覆盖层次、皮肤状态和位置进行人工复核，再制定循序渐进的处理方案。`;
+
+        return Object.assign({}, assessment, {
+            title: assessment.level.title,
+            tags,
+            riskFactors,
+            advantages,
+            suggestion
+        });
     }
 
     /* ---------- 问卷校准 ---------- */
@@ -467,8 +602,11 @@
         createSceneWarning,
         summarizeSelections,
         buildCombinedInsight,
+        assessmentRules,
+        getDifficultyLevel,
+        calculateAssessment,
+        generateReport,
         crossValidate,
         getRecommendedThresholds
     };
 })(typeof window !== 'undefined' ? window : globalThis);
-
