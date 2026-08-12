@@ -3566,13 +3566,13 @@
             });
 
             // 6. 预计周期
-            const timelineMap = {
+            const timelineDetailMap = {
                 1: '预计总周期 <strong>2-4 个月</strong>，每次间隔 6-8 周恢复期。个人体质不同，实际周期可能有差异。',
                 2: '预计总周期 <strong>4-8 个月</strong>，每次间隔 8-10 周恢复期。需根据每次恢复情况动态调整节奏。',
                 3: '预计总周期 <strong>8-14 个月</strong>，每次间隔 8-12 周恢复期。彩色区域需单独判断节奏，建议分区域交替推进。',
                 4: '预计总周期 <strong>12 个月以上</strong>，每次间隔 10-14 周以上。需先由师傅面诊确认适应症后制定长期方案。'
             };
-            document.getElementById('detail-timeline').innerHTML = timelineMap[report.level.level] || timelineMap[1];
+            document.getElementById('detail-timeline').innerHTML = timelineDetailMap[report.level.level] || timelineDetailMap[1];
 
             // 7. 注意事项
             const notes = [
