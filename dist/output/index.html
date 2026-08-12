@@ -594,7 +594,7 @@
 
         /* ==================== Result Screen V2 ==================== */
         .result-hero-v2 {
-            padding: 32px 20px 20px;
+            padding: 28px 20px 18px;
             text-align: center;
             background: linear-gradient(180deg, var(--white) 0%, var(--bg) 100%);
         }
@@ -602,73 +602,90 @@
             font-size: 12px;
             color: var(--gold-dark);
             letter-spacing: 2px;
-            margin-bottom: 16px;
+            margin-bottom: 18px;
             font-weight: 600;
         }
 
-        /* Score Ring */
-        .result-score-v2 {
+        /* ---- Primary: Sessions + Timeline ---- */
+        .result-primary {
             display: flex;
             justify-content: center;
-            margin-bottom: 12px;
+            gap: 16px;
+            margin-bottom: 16px;
         }
-        .score-ring {
-            position: relative;
-            width: 120px;
-            height: 120px;
+        .result-primary-card {
+            flex: 1;
+            max-width: 156px;
+            padding: 16px 10px;
+            border-radius: var(--radius-md);
+            background: var(--black);
+            text-align: center;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
         }
-        .score-ring-svg {
-            width: 120px;
-            height: 120px;
-        }
-        .score-ring-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .score-ring-num {
-            font-family: var(--font-serif);
-            font-size: 32px;
-            font-weight: 800;
-            color: var(--black);
-            line-height: 1;
-        }
-        .score-ring-unit {
+        .result-primary-label {
+            display: block;
             font-size: 11px;
-            color: var(--gray-500);
-            margin-top: 2px;
-        }
-
-        .result-type-v2 {
-            font-family: var(--font-serif);
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--black);
-            margin-bottom: 4px;
-        }
-        .result-level-v2 {
-            font-size: 13px;
-            color: var(--gold-dark);
-            margin-bottom: 12px;
+            color: var(--gold-light);
+            letter-spacing: 1px;
+            margin-bottom: 6px;
             font-weight: 500;
         }
-        .result-meta {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-bottom: 14px;
+        .result-primary-value {
+            display: block;
+            font-family: var(--font-serif);
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--white);
+            line-height: 1.15;
         }
-        .result-meta-item {
-            font-size: 12px;
+
+        /* ---- Secondary: Difficulty + Score ---- */
+        .result-secondary {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            margin-bottom: 10px;
+        }
+        .result-diff-row {
+            font-size: 13px;
             color: var(--gray-500);
         }
-        .result-meta-item strong {
+        .result-diff-row strong {
             color: var(--gray-900);
             font-weight: 700;
+        }
+        .result-score-badge {
+            padding: 3px 10px;
+            border-radius: 10px;
+            background: var(--gray-100);
+            font-size: 11px;
+            color: var(--gray-500);
+            font-weight: 500;
+        }
+        .result-score-badge span {
+            color: var(--gray-700);
+            font-weight: 700;
+        }
+
+        /* ---- Type + Level ---- */
+        .result-type-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .result-type-v2 {
+            font-family: var(--font-serif);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--black);
+        }
+        .result-level-v2 {
+            font-size: 12px;
+            color: var(--gold-dark);
+            font-weight: 500;
         }
 
         .result-tags {
@@ -2217,24 +2234,32 @@
             <!-- 核心评估卡片（始终可见） -->
             <div class="result-hero result-hero-v2">
                 <div class="result-label">栩刺青 AI 智能评估</div>
-                <div class="result-score-v2">
-                    <div class="score-ring" id="score-ring">
-                        <svg viewBox="0 0 120 120" class="score-ring-svg">
-                            <circle cx="60" cy="60" r="52" fill="none" stroke="#E8DCB8" stroke-width="6"/>
-                            <circle cx="60" cy="60" r="52" fill="none" stroke="#C9A961" stroke-width="6" stroke-dasharray="0 327" stroke-linecap="round" id="score-arc" transform="rotate(-90 60 60)"/>
-                        </svg>
-                        <div class="score-ring-text">
-                            <span class="score-ring-num" id="result-score">0</span>
-                            <span class="score-ring-unit">分</span>
-                        </div>
+
+                <!-- 核心信息：次数 + 周期 -->
+                <div class="result-primary">
+                    <div class="result-primary-card">
+                        <span class="result-primary-label">预计次数</span>
+                        <span class="result-primary-value" id="result-sessions-big">—</span>
+                    </div>
+                    <div class="result-primary-card">
+                        <span class="result-primary-label">预计周期</span>
+                        <span class="result-primary-value" id="result-timeline-big">—</span>
                     </div>
                 </div>
-                <div class="result-type-v2" id="result-type">相对简单</div>
-                <div class="result-level-v2" id="result-stars">一级 · 0-25 分</div>
-                <div class="result-meta">
-                    <span class="result-meta-item" id="result-diff">处理难度：<strong>—</strong></span>
-                    <span class="result-meta-item" id="result-sessions">预计次数：<strong>—</strong></span>
+
+                <!-- 次要：难度 + 评分 -->
+                <div class="result-secondary">
+                    <div class="result-diff-row" id="result-diff-row">处理难度：<strong>—</strong></div>
+                    <div class="result-score-badge">评分 <span id="result-score-badge">—</span></div>
                 </div>
+
+                <!-- 类型标签 + 等级 -->
+                <div class="result-type-row">
+                    <span class="result-type-v2" id="result-type">相对简单</span>
+                    <span class="result-level-v2" id="result-stars">一级 · 0-25 分</span>
+                </div>
+
+                <!-- 标签 -->
                 <div class="result-tags" id="result-tags"></div>
             </div>
 
@@ -3162,6 +3187,7 @@
         ];
 
         let currentStep = 0;
+        let tagExpanded = false;
         const answers = {}; // { stepIndex: [selectedIndices] }
 
         // ==================== Questionnaire ====================
@@ -3254,11 +3280,12 @@
             const toggle = document.getElementById('tag-expand-toggle');
             if (needCollapse) {
                 toggle.style.display = 'block';
-                toggle.textContent = '查看更多 (' + (step.options.length - SHOW_COUNT) + ') ▼';
-                cloud.classList.remove('expanded');
+                toggle.textContent = tagExpanded ? '收起 ▲' : ('查看更多 (' + (step.options.length - SHOW_COUNT) + ') ▼');
+                if (tagExpanded) cloud.classList.add('expanded');
             } else {
                 toggle.style.display = 'none';
                 cloud.classList.remove('expanded');
+                tagExpanded = false;
             }
 
             // Button text
@@ -3284,18 +3311,17 @@
         }
 
         function toggleTagExpand() {
+            tagExpanded = !tagExpanded;
             const cloud = document.getElementById('tag-cloud');
             const toggle = document.getElementById('tag-expand-toggle');
-            if (cloud.classList.contains('expanded')) {
-                cloud.classList.remove('expanded');
-                toggle.textContent = toggle.textContent.replace('收起 ▲', '查看更多 ▼');
-            } else {
+            const step = steps[currentStep];
+            const SHOW_COUNT = 6;
+            if (tagExpanded) {
                 cloud.classList.add('expanded');
-                toggle.textContent = toggle.textContent.replace('查看更多 ▼', '收起 ▲');
-                // toggle.textContent may contain count, handle generically
-                if (toggle.textContent.indexOf('收起') === -1) {
-                    toggle.textContent = '收起 ▲';
-                }
+                toggle.textContent = '收起 ▲';
+            } else {
+                cloud.classList.remove('expanded');
+                toggle.textContent = '查看更多 (' + (step.options.length - SHOW_COUNT) + ') ▼';
             }
         }
 
@@ -3469,22 +3495,29 @@
             const assessmentInput = getAssessmentInput();
             const report = window.TattooAnalysisCore.generateReport(assessmentInput);
 
-            // Score ring arc
             const score = report.totalScore;
-            const arc = document.getElementById('score-arc');
-            const circumference = 2 * Math.PI * 52; // ~327
-            const dashLength = (score / 100) * circumference;
-            arc.setAttribute('stroke-dasharray', dashLength + ' ' + circumference);
 
-            document.getElementById('result-score').textContent = score;
-            document.getElementById('result-stars').textContent = report.level.label + ' · ' + report.level.range + ' 分';
-            document.getElementById('result-type').textContent = report.level.title;
-
-            // Difficulty & sessions
+            // Diff & sessions maps
             const diffMap = { 1: '简单', 2: '中等', 3: '较难', 4: '复杂' };
             const sessionsMap = { 1: '1-2 次', 2: '2-4 次', 3: '5-8 次', 4: '8 次以上' };
-            document.getElementById('result-diff').innerHTML = '处理难度：<strong>' + (diffMap[report.level.level] || '待评估') + '</strong>';
-            document.getElementById('result-sessions').innerHTML = '预计次数：<strong>' + (sessionsMap[report.level.level] || '待评估') + '</strong>';
+            const timelineMap = {
+                1: '2-4 个月',
+                2: '4-8 个月',
+                3: '8-14 个月',
+                4: '12 个月以上'
+            };
+
+            // Primary: sessions + timeline (prominent)
+            document.getElementById('result-sessions-big').textContent = sessionsMap[report.level.level] || '待评估';
+            document.getElementById('result-timeline-big').textContent = timelineMap[report.level.level] || '待评估';
+
+            // Secondary: difficulty + score badge
+            document.getElementById('result-diff-row').innerHTML = '处理难度：<strong>' + (diffMap[report.level.level] || '待评估') + '</strong>';
+            document.getElementById('result-score-badge').textContent = score + '/100';
+
+            // Type + level
+            document.getElementById('result-type').textContent = report.level.title;
+            document.getElementById('result-stars').textContent = report.level.label + ' · ' + report.level.range + ' 分';
 
             // Tags
             const tagWrap = document.getElementById('result-tags');
