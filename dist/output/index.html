@@ -463,6 +463,43 @@
             color: var(--gray-700);
             border-color: var(--gray-700);
         }
+        .treatment-count-wrap {
+            margin: 14px 20px 0;
+            padding: 14px;
+            border-radius: var(--radius-md);
+            background: var(--gold-bg);
+            border: 1px solid var(--gold-border);
+        }
+        .treatment-count-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gold-dark);
+            margin-bottom: 10px;
+        }
+        .treatment-count-options {
+            display: flex;
+            gap: 10px;
+        }
+        .treatment-count-btn {
+            flex: 1;
+            height: 42px;
+            border-radius: var(--radius-sm);
+            border: 1.5px solid var(--gold-border);
+            background: var(--white);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gold-dark);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .treatment-count-btn:active {
+            transform: scale(0.96);
+        }
+        .treatment-count-btn.selected {
+            background: var(--gold-dark);
+            border-color: var(--gold-dark);
+            color: var(--white);
+        }
         .tag {
             width: 100%;
             min-height: 48px;
@@ -2011,11 +2048,11 @@
                     <div class="case-card">
                         <div class="case-compare">
                             <div class="case-img-wrap">
-                                <img src="https://aka.doubaocdn.com/s/mdbq7Ph6xt" alt="洗前">
+                                <img src="cases/case1-before.jpg" alt="洗前">
                                 <span class="case-badge case-badge-before">洗前</span>
                             </div>
                             <div class="case-img-wrap">
-                                <img src="https://aka.doubaocdn.com/s/y4CtUrS2xd" alt="恢复后">
+                                <img src="cases/case1-after.jpg" alt="恢复后">
                                 <span class="case-badge case-badge-after">恢复后</span>
                             </div>
                         </div>
@@ -2027,11 +2064,11 @@
                     <div class="case-card">
                         <div class="case-compare">
                             <div class="case-img-wrap">
-                                <img src="https://aka.doubaocdn.com/s/4DeASXjCZd" alt="洗前">
+                                <img src="cases/case2-before.jpg" alt="洗前">
                                 <span class="case-badge case-badge-before">洗前</span>
                             </div>
                             <div class="case-img-wrap">
-                                <img src="https://aka.doubaocdn.com/s/7ImIDzho9C" alt="恢复后">
+                                <img src="cases/case2-after.jpg" alt="恢复后">
                                 <span class="case-badge case-badge-after">恢复后</span>
                             </div>
                         </div>
@@ -2043,11 +2080,11 @@
                     <div class="case-card">
                         <div class="case-compare">
                             <div class="case-img-wrap">
-                                <img src="https://aka.doubaocdn.com/s/U82NGMxoa2" alt="洗前">
+                                <img src="cases/case3-before.jpg" alt="洗前">
                                 <span class="case-badge case-badge-before">洗前</span>
                             </div>
                             <div class="case-img-wrap">
-                                <img src="https://aka.doubaocdn.com/s/r185j51gDw" alt="恢复后">
+                                <img src="cases/case3-after.jpg" alt="恢复后">
                                 <span class="case-badge case-badge-after">恢复后</span>
                             </div>
                         </div>
@@ -2203,6 +2240,13 @@
             </div>
             <div class="tag-cloud" id="tag-cloud"></div>
             <button class="tag-expand-toggle" id="tag-expand-toggle" onclick="toggleTagExpand()" aria-label="查看更多选项">查看更多 ▼</button>
+            <div class="treatment-count-wrap" id="treatment-count-wrap" style="display:none;">
+                <div class="treatment-count-title">大约洗过几次？（影响褪色残留检测精度）</div>
+                <div class="treatment-count-options">
+                    <button class="treatment-count-btn" data-value="1-3" onclick="setTreatmentCount('1-3')">1-3 次</button>
+                    <button class="treatment-count-btn" data-value="4_plus" onclick="setTreatmentCount('4_plus')">4 次以上</button>
+                </div>
+            </div>
             <div class="assess-nav">
                 <button class="btn-back" onclick="prevStep()" aria-label="上一步">
                     <svg viewBox="0 0 24 24" fill="none">
@@ -2490,7 +2534,7 @@
 
     <script src="./tattooRules.js"></script>
     <script src="./tattoo-analysis-core.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="html2canvas.min.js"></script>
     <script>
         // ==================== Config ====================
         const PHONE_NUMBER = '13800138000'; // 替换为实际电话号码
@@ -3188,6 +3232,7 @@
 
         let currentStep = 0;
         let tagExpanded = false;
+        let treatmentCount = null; // 治疗次数：'1-3' / '4_plus' / null
         const answers = {}; // { stepIndex: [selectedIndices] }
 
         // ==================== Questionnaire ====================
@@ -3198,12 +3243,44 @@
             toggle.classList.toggle('expanded', isOpen);
         }
 
+        // 从新问卷 answers 中按 key 取值
+        function getAnswerByKey(key) {
+            const stepIdx = steps.findIndex(s => s.key === key);
+            if (stepIdx < 0) return null;
+            const selected = answers[stepIdx] || [];
+            const step = steps[stepIdx];
+            const values = selected
+                .map(idx => step.options[idx] && step.options[idx].value)
+                .filter(Boolean);
+            return step.multi ? values : (values[0] || null);
+        }
+
         function getQuestionnaire() {
+            const status = getAnswerByKey('status');
+            const skin = getAnswerByKey('skin');
+            const colors = getAnswerByKey('colors') || [];
+
+            // 治疗次数：优先用动态追问的 treatmentCount；选了"已洗过"但没选次数则默认 1-3
+            let treatments = 'never';
+            if (status === 'washed') {
+                treatments = treatmentCount || '1-3';
+            }
+
+            // 疤痕：皮肤明显凸起或疤痕感
+            const hasScar = (skin === 'scar_like' || skin === 'raised') ? 'yes' : 'no';
+
+            // 墨水颜色：只有黑/灰 → black；有其他颜色 → color
+            let inkColor = null;
+            if (colors.length > 0) {
+                const onlyBlackGray = colors.every(c => c === 'black' || c === 'gray');
+                inkColor = onlyBlackGray ? 'black' : 'color';
+            }
+
             return {
-                duration: document.getElementById('q-duration').value || null,
-                treatments: document.getElementById('q-treatments').value || null,
-                hasScar: document.getElementById('q-scar').value || null,
-                inkColor: document.getElementById('q-color').value || null
+                duration: null, // 新问卷无时长字段
+                treatments: treatments,
+                hasScar: hasScar,
+                inkColor: inkColor
             };
         }
 
@@ -3216,6 +3293,7 @@
 
         function startAssessment() {
             currentStep = 0;
+            treatmentCount = null;
             Object.keys(answers).forEach(k => delete answers[k]);
             photoAnalysis = null;
             photoDataUrl = null;
@@ -3291,6 +3369,24 @@
             // Button text
             const btnText = document.getElementById('btn-next-text');
             btnText.textContent = currentStep === total - 1 ? '查看评估结果' : '下一步';
+
+            // 治疗次数动态追问：仅在 status 步且选了"已洗过"时显示
+            const treatWrap = document.getElementById('treatment-count-wrap');
+            if (step.key === 'status') {
+                const selected = answers[currentStep] || [];
+                const selectedVal = selected.length > 0 && step.options[selected[0]] ? step.options[selected[0]].value : null;
+                if (selectedVal === 'washed') {
+                    treatWrap.style.display = 'block';
+                    treatWrap.querySelectorAll('.treatment-count-btn').forEach(btn => {
+                        btn.classList.toggle('selected', btn.dataset.value === treatmentCount);
+                    });
+                } else {
+                    treatWrap.style.display = 'none';
+                    treatmentCount = null; // 切回非washed时清空
+                }
+            } else {
+                treatWrap.style.display = 'none';
+            }
         }
 
         function toggleTag(idx) {
@@ -3308,6 +3404,14 @@
                 answers[currentStep] = [idx];
             }
             renderStep();
+        }
+
+        function setTreatmentCount(value) {
+            treatmentCount = value;
+            // 更新按钮高亮
+            document.querySelectorAll('.treatment-count-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.dataset.value === value);
+            });
         }
 
         function toggleTagExpand() {
@@ -3494,6 +3598,16 @@
         function calculateResult() {
             const assessmentInput = getAssessmentInput();
             const report = window.TattooAnalysisCore.generateReport(assessmentInput);
+
+            // 图片分析难度修正：将照片像素分析的 difficultyMod 叠加到问卷总分
+            if (photoAnalysis && photoAnalysis.difficultyMod && photoAnalysis.difficultyMod > 0) {
+                const adjustedScore = Math.min(100, report.totalScore + photoAnalysis.difficultyMod);
+                if (adjustedScore !== report.totalScore) {
+                    report.totalScore = adjustedScore;
+                    report.level = window.TattooAnalysisCore.getDifficultyLevel(adjustedScore);
+                    report.title = report.level.title;
+                }
+            }
 
             const score = report.totalScore;
 
@@ -3718,8 +3832,13 @@
             closeFollowup();
             if (!isYes) return;
 
-            // 用户回答"是"，将问卷 treatment 设为已治疗
-            document.getElementById('q-treatments').value = '1-3';
+            // 用户回答"是"，将问卷 status 设为"已洗过"并默认治疗次数 1-3
+            const statusStepIdx = steps.findIndex(s => s.key === 'status');
+            if (statusStepIdx >= 0) {
+                const washedIdx = steps[statusStepIdx].options.findIndex(o => o.value === 'washed');
+                if (washedIdx >= 0) answers[statusStepIdx] = [washedIdx];
+            }
+            treatmentCount = '1-3';
 
             // 重新分析
             if (!photoDataUrl) return;
