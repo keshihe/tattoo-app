@@ -4,9 +4,12 @@ import vm from 'node:vm';
 import test from 'node:test';
 
 const source = fs.readFileSync(new URL('../src/tattoo-analysis-core.js', import.meta.url), 'utf8');
+const rulesSource = fs.readFileSync(new URL('../src/tattooRules.js', import.meta.url), 'utf8');
 const context = {
   window: {}
 };
+// 先加载规则表，再加载引擎（引擎依赖 window.TattooRules）
+vm.runInNewContext(rulesSource, context, { filename: 'tattooRules.js' });
 vm.runInNewContext(source, context, { filename: 'tattoo-analysis-core.js' });
 const core = context.window.TattooAnalysisCore;
 
@@ -200,16 +203,19 @@ test('calculates six assessment dimensions and caps total at 100', () => {
   const result = core.calculateAssessment({
     type: 'cover',
     colors: ['black', 'red', 'blue', 'green', 'yellow', 'purple'],
-    density: 'high',
-    cover: 'full',
+    status: 'covered',
+    saturation: 'high_sat',
     skin: 'scar_like',
-    location: 'finger'
+    location: 'hand'
   });
 
   assert.equal(result.totalScore, 100);
-  assert.equal(result.breakdown.density, 25);
-  assert.equal(result.breakdown.cover, 20);
+  assert.equal(result.breakdown.type, 18);
+  assert.equal(result.breakdown.status, 25);
+  assert.equal(result.breakdown.saturation, 22);
   assert.equal(result.breakdown.color, 15);
+  assert.equal(result.breakdown.skin, 15);
+  assert.equal(result.breakdown.location, 5);
 });
 
 test('maps score boundaries to the four report levels', () => {
@@ -225,14 +231,15 @@ test('generates report tags and avoids treatment-count promises', () => {
   const report = core.generateReport({
     type: 'traditional',
     colors: ['black', 'red'],
-    density: 'high',
-    cover: 'none',
+    status: 'original',
+    saturation: 'high_sat',
     skin: 'flat',
     location: 'arm'
   });
 
   assert.ok(report.tags.includes('#欧美传统'));
-  assert.ok(report.riskFactors.some((item) => item.title === '色料密度'));
-  assert.ok(report.advantages.some((item) => item.title === '皮肤状态'));
+  assert.ok(report.riskFactors.some((item) => item.title === '色料饱和度'));
+  assert.ok(report.riskFactors.some((item) => item.title === '彩色色料'));
+  assert.ok(report.advantages.some((item) => item.title === '皮肤状态良好'));
   assert.doesNotMatch(report.suggestion, /保证|几次洗掉|一定/);
 });
