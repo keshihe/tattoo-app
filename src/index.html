@@ -643,17 +643,17 @@
             font-weight: 600;
         }
 
-        /* ---- Primary: Sessions + Timeline ---- */
+        /* ---- Primary: Sessions + Timeline + Difficulty ---- */
         .result-primary {
             display: flex;
             justify-content: center;
-            gap: 16px;
-            margin-bottom: 16px;
+            gap: 10px;
+            margin-bottom: 14px;
         }
         .result-primary-card {
             flex: 1;
-            max-width: 156px;
-            padding: 16px 10px;
+            max-width: 108px;
+            padding: 14px 6px;
             border-radius: var(--radius-md);
             background: var(--black);
             text-align: center;
@@ -670,10 +670,14 @@
         .result-primary-value {
             display: block;
             font-family: var(--font-serif);
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 800;
             color: var(--white);
             line-height: 1.15;
+        }
+        .result-primary-value-sm {
+            font-size: 17px;
+            padding-top: 4px;
         }
 
         /* ---- Secondary: Difficulty + Score ---- */
@@ -1323,15 +1327,25 @@
             height: 100%;
             object-fit: cover;
         }
-        .upload-retake {
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 6px 14px;
+        .upload-retake-row {
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+        }
+        .upload-retake-btn {
+            padding: 8px 20px;
             border-radius: 20px;
-            background: rgba(10,10,10,0.7);
+            background: var(--gray-900);
             color: var(--white);
+            font-size: 13px;
+            font-weight: 500;
+            border: 1px solid var(--gray-700);
+            transition: all 0.2s;
+        }
+        .upload-retake-btn:active {
+            transform: scale(0.96);
+            background: var(--gray-700);
+        }
             font-size: 12px;
             font-weight: 500;
             backdrop-filter: blur(8px);
@@ -2190,8 +2204,11 @@
                     </div>
                     <div class="upload-preview" id="photo-preview" style="display:none">
                         <img src="" alt="纹身照片">
-                        <div class="upload-retake">重新拍照</div>
                     </div>
+                </div>
+
+                <div class="upload-retake-row" id="upload-retake-row" style="display:none">
+                    <button type="button" class="upload-retake-btn" onclick="retakePhoto()">重新选择照片</button>
                 </div>
 
                 <div class="upload-choice-row">
@@ -2279,7 +2296,7 @@
             <div class="result-hero result-hero-v2">
                 <div class="result-label">栩刺青 AI 智能评估</div>
 
-                <!-- 核心信息：次数 + 周期 -->
+                <!-- 核心信息：次数 + 周期 + 难度 -->
                 <div class="result-primary">
                     <div class="result-primary-card">
                         <span class="result-primary-label">预计次数</span>
@@ -2289,22 +2306,17 @@
                         <span class="result-primary-label">预计周期</span>
                         <span class="result-primary-value" id="result-timeline-big">—</span>
                     </div>
+                    <div class="result-primary-card">
+                        <span class="result-primary-label">处理难度</span>
+                        <span class="result-primary-value result-primary-value-sm" id="result-difficulty-big">—</span>
+                    </div>
                 </div>
 
-                <!-- 次要：难度 + 评分 -->
-                <div class="result-secondary">
-                    <div class="result-diff-row" id="result-diff-row">处理难度：<strong>—</strong></div>
-                    <div class="result-score-badge">评分 <span id="result-score-badge">—</span></div>
-                </div>
-
-                <!-- 类型标签 + 等级 -->
+                <!-- 类型 + 等级 -->
                 <div class="result-type-row">
                     <span class="result-type-v2" id="result-type">相对简单</span>
                     <span class="result-level-v2" id="result-stars">一级 · 0-25 分</span>
                 </div>
-
-                <!-- 标签 -->
-                <div class="result-tags" id="result-tags"></div>
             </div>
 
             <!-- 折叠切换按钮 -->
@@ -2319,28 +2331,21 @@
 
             <!-- 详细分析区（默认折叠） -->
             <div class="detail-panel" id="detail-panel">
-                <!-- 当前纹身小结 -->
+                <!-- 预计处理方案 -->
                 <div class="detail-section">
                     <div class="detail-section-header">
                         <span class="detail-section-icon">1</span>
-                        <span class="detail-section-title">当前纹身小结</span>
+                        <span class="detail-section-title">预计处理方案</span>
                     </div>
-                    <div class="detail-section-body" id="detail-summary"></div>
-                </div>
-
-                <!-- AI分析 -->
-                <div class="detail-section">
-                    <div class="detail-section-header">
-                        <span class="detail-section-icon">2</span>
-                        <span class="detail-section-title">AI 智能分析</span>
+                    <div class="detail-section-body">
+                        <div class="recovery-list" id="recovery-list"></div>
                     </div>
-                    <div class="detail-section-body" id="detail-ai-analysis"></div>
                 </div>
 
                 <!-- 优势因素 -->
                 <div class="detail-section">
                     <div class="detail-section-header">
-                        <span class="detail-section-icon">3</span>
+                        <span class="detail-section-icon">2</span>
                         <span class="detail-section-title">优势因素</span>
                     </div>
                     <div class="detail-section-body">
@@ -2351,7 +2356,7 @@
                 <!-- 影响因素 -->
                 <div class="detail-section">
                     <div class="detail-section-header">
-                        <span class="detail-section-icon">4</span>
+                        <span class="detail-section-icon">3</span>
                         <span class="detail-section-title">影响因素</span>
                     </div>
                     <div class="detail-section-body">
@@ -2359,21 +2364,10 @@
                     </div>
                 </div>
 
-                <!-- 预计方案 -->
-                <div class="detail-section">
-                    <div class="detail-section-header">
-                        <span class="detail-section-icon">5</span>
-                        <span class="detail-section-title">预计处理方案</span>
-                    </div>
-                    <div class="detail-section-body">
-                        <div class="recovery-list" id="recovery-list"></div>
-                    </div>
-                </div>
-
                 <!-- 预计周期 -->
                 <div class="detail-section">
                     <div class="detail-section-header">
-                        <span class="detail-section-icon">6</span>
+                        <span class="detail-section-icon">4</span>
                         <span class="detail-section-title">预计周期</span>
                     </div>
                     <div class="detail-section-body" id="detail-timeline"></div>
@@ -2382,12 +2376,30 @@
                 <!-- 注意事项 -->
                 <div class="detail-section">
                     <div class="detail-section-header">
-                        <span class="detail-section-icon">7</span>
+                        <span class="detail-section-icon">5</span>
                         <span class="detail-section-title">注意事项</span>
                     </div>
                     <div class="detail-section-body">
                         <ul class="tips-list tips-list-v2" id="detail-notes"></ul>
                     </div>
+                </div>
+
+                <!-- 当前纹身小结 -->
+                <div class="detail-section">
+                    <div class="detail-section-header">
+                        <span class="detail-section-icon">6</span>
+                        <span class="detail-section-title">当前纹身小结</span>
+                    </div>
+                    <div class="detail-section-body" id="detail-summary"></div>
+                </div>
+
+                <!-- AI分析 -->
+                <div class="detail-section">
+                    <div class="detail-section-header">
+                        <span class="detail-section-icon">7</span>
+                        <span class="detail-section-title">AI 智能分析</span>
+                    </div>
+                    <div class="detail-section-body" id="detail-ai-analysis"></div>
                 </div>
 
                 <!-- AI照片分析卡片（有照片时显示） -->
@@ -2998,12 +3010,28 @@
 
             document.getElementById('btn-continue-assess').style.display = 'none';
             document.getElementById('ai-preview').classList.remove('show');
+            document.getElementById('upload-retake-row').style.display = 'none';
             document.getElementById('btn-skip-photo').style.display = 'inline-flex';
         }
 
         function openPhotoPicker(source) {
             const inputId = source === 'camera' ? 'photo-camera' : 'photo-album';
             document.getElementById(inputId).click();
+        }
+
+        function retakePhoto() {
+            photoDataUrl = null;
+            photoAnalysis = null;
+            const preview = document.getElementById('photo-preview');
+            preview.style.display = 'none';
+            preview.querySelector('img').src = '';
+            document.getElementById('upload-area').classList.remove('has-image');
+            document.getElementById('upload-placeholder').style.display = '';
+            document.getElementById('upload-retake-row').style.display = 'none';
+            document.getElementById('btn-skip-photo').style.display = '';
+            document.getElementById('btn-analyze').style.display = 'none';
+            document.getElementById('btn-continue-assess').style.display = 'none';
+            document.getElementById('ai-preview').classList.remove('show');
         }
 
         function handlePhotoSelect(input) {
@@ -3029,6 +3057,7 @@
                         preview.style.display = 'block';
                         document.getElementById('upload-area').classList.add('has-image');
                         document.getElementById('upload-placeholder').style.display = 'none';
+                        document.getElementById('upload-retake-row').style.display = 'flex';
                         document.getElementById('btn-skip-photo').style.display = 'none';
                         document.getElementById('btn-analyze').style.display = 'flex';
                     })
@@ -3143,7 +3172,7 @@
                     { value: 'traditional', text: '欧美传统', impact: '色料堆积较厚、线条粗重，需分层处理' },
                     { value: 'new_traditional', text: '新传统', impact: '色彩丰富但层次清晰，难度中等' },
                     { value: 'japanese', text: '日式传统', impact: '大面积高饱和色块，需精细分区处理' },
-                    { value: 'line', text: '线条纹身', impact: '以线条为主，色料集中，处理相对直接' },
+                    { value: 'line', text: '线条纹身', impact: '线条清晰、色料浓度高，需关注线条密度与部位饱和度' },
                     { value: 'lettering', text: '花体文字', impact: '文字类纹身，色料通常较浅，恢复较快' },
                     { value: 'geometric', text: '几何图案', impact: '规则图形，色料均匀，评估难度适中' },
                     { value: 'dotwork', text: '点刺风格', impact: '点状色料分布，密度影响处理难度' },
@@ -3301,6 +3330,7 @@
             document.getElementById('upload-area').classList.remove('has-image');
             document.getElementById('upload-placeholder').style.display = '';
             document.getElementById('photo-preview').style.display = 'none';
+            document.getElementById('upload-retake-row').style.display = 'none';
             document.getElementById('ai-preview').classList.remove('show');
             document.getElementById('btn-skip-photo').style.display = '';
             document.getElementById('btn-analyze').style.display = 'none';
@@ -3625,22 +3655,12 @@
             document.getElementById('result-sessions-big').textContent = sessionsMap[report.level.level] || '待评估';
             document.getElementById('result-timeline-big').textContent = timelineMap[report.level.level] || '待评估';
 
-            // Secondary: difficulty + score badge
-            document.getElementById('result-diff-row').innerHTML = '处理难度：<strong>' + (diffMap[report.level.level] || '待评估') + '</strong>';
-            document.getElementById('result-score-badge').textContent = score + '/100';
+            // Difficulty card
+            document.getElementById('result-difficulty-big').textContent = diffMap[report.level.level] || '待评估';
 
             // Type + level
             document.getElementById('result-type').textContent = report.level.title;
             document.getElementById('result-stars').textContent = report.level.label + ' · ' + report.level.range + ' 分';
-
-            // Tags
-            const tagWrap = document.getElementById('result-tags');
-            tagWrap.innerHTML = '';
-            report.tags.forEach(text => {
-                const tag = document.createElement('span');
-                tag.textContent = text;
-                tagWrap.appendChild(tag);
-            });
 
             // Detail panel content
             // 1. 当前纹身小结
