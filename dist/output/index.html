@@ -2138,8 +2138,8 @@
                         </svg>
                         AI 图像分析
                     </div>
-                    <h2 class="photo-title">拍张纹身照片<br>AI帮你智能分析</h2>
-                    <p class="photo-desc">上传单张近距离纹身照片，AI在本地分析颜色、面积和难度，不上传照片</p>
+                    <h2 class="photo-title">拍张纹身照片<br>师傅远程帮你评估</h2>
+                    <p class="photo-desc">上传单张近距离纹身照片，添加微信后师傅直接查看，无需重复发图，照片仅保存在本机</p>
                 </div>
 
                 <input type="file" id="photo-camera" accept="image/*" capture="environment" style="display:none" onchange="handlePhotoSelect(this)">
@@ -2228,11 +2228,11 @@
 
                 <div class="photo-nav">
                     <button class="btn-skip" id="btn-skip-photo" onclick="skipPhoto()">跳过</button>
-                    <button class="btn-analyze" id="btn-analyze" style="display:none" onclick="startAIAnalysis()">
+                    <button class="btn-analyze" id="btn-analyze" style="display:none" onclick="continueToAssess()">
+                        <span>使用照片，继续评估</span>
                         <svg viewBox="0 0 24 24" fill="none">
-                            <path d="M9 12l2 2 4-4M12 3a9 9 0 100 18 9 9 0 000-18z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        开始图片分析
                     </button>
                     <button class="btn-analyze" id="btn-continue-assess" style="display:none" onclick="continueToAssess()">
                         <span>继续评估</span>
@@ -2402,11 +2402,11 @@
                     <div class="detail-section-body" id="detail-ai-analysis"></div>
                 </div>
 
-                <!-- AI照片分析卡片（有照片时显示） -->
+                <!-- 纹身照片卡片（有照片时显示） -->
                 <div class="detail-section ai-card-v2" id="ai-card">
                     <div class="detail-section-header">
                         <span class="detail-section-icon">P</span>
-                        <span class="detail-section-title">AI 结合照片分析</span>
+                        <span class="detail-section-title">你的纹身照片</span>
                     </div>
                     <div class="detail-section-body">
                         <div class="ai-card-body-v2">
@@ -2415,24 +2415,8 @@
                             </div>
                             <div class="ai-card-findings-v2">
                                 <div class="ai-finding-v2">
-                                    <span class="ai-finding-label-v2">颜色类型</span>
-                                    <span class="ai-finding-value-v2" id="ai-finding-color">—</span>
-                                </div>
-                                <div class="ai-finding-v2">
-                                    <span class="ai-finding-label-v2">色素深度</span>
-                                    <span class="ai-finding-value-v2" id="ai-finding-density">—</span>
-                                </div>
-                                <div class="ai-finding-v2">
-                                    <span class="ai-finding-label-v2">覆盖面积</span>
-                                    <span class="ai-finding-value-v2" id="ai-finding-coverage">—</span>
-                                </div>
-                                <div class="ai-finding-v2">
-                                    <span class="ai-finding-label-v2">皮肤状态</span>
-                                    <span class="ai-finding-value-v2" id="ai-finding-skin">—</span>
-                                </div>
-                                <div class="ai-finding-v2">
-                                    <span class="ai-finding-label-v2">分析提示</span>
-                                    <span class="ai-finding-value-v2" id="ai-finding-warning">—</span>
+                                    <span class="ai-finding-label-v2">照片用途</span>
+                                    <span class="ai-finding-value-v2">已随评估保存，添加微信后师傅可直接查看，无需重复发送</span>
                                 </div>
                             </div>
                         </div>
@@ -2466,7 +2450,7 @@
                         </div>
                         <div class="convert-card-text">
                             <div class="convert-card-title">上传高清纹身照片</div>
-                            <div class="convert-card-desc">拍摄清晰近照，AI 结合照片精准分析</div>
+                            <div class="convert-card-desc">拍摄清晰近照，添加微信由师傅远程精准评估</div>
                         </div>
                     </button>
                     <button class="convert-card" onclick="openWeChatModal()">
@@ -3004,7 +2988,7 @@
 
         function resetPhotoUI() {
             const btnAnalyze = document.getElementById('btn-analyze');
-            btnAnalyze.innerHTML = '<svg viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4M12 3a9 9 0 100 18 9 9 0 000-18z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> 开始图片分析';
+            btnAnalyze.innerHTML = '<span>使用照片，继续评估</span><svg viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
             btnAnalyze.style.pointerEvents = '';
             btnAnalyze.style.display = 'none';
 
@@ -3073,79 +3057,9 @@
             reader.readAsDataURL(file);
         }
 
+        // 照片分析已下线：照片仅用于展示给师傅，评估结果完全由问卷驱动
         async function startAIAnalysis() {
-            if (!photoDataUrl) return;
-
-            const btn = document.getElementById('btn-analyze');
-            btn.innerHTML = '<div class="mini-spinner"></div> 图片分析中...';
-            btn.style.pointerEvents = 'none';
-
-            // 读取问卷答案
-            const questionnaire = getQuestionnaire();
-            const calibration = window.TattooAnalysisCore.getRecommendedThresholds(questionnaire);
-            const hasCalibration = calibration.strictMode || calibration.relaxedMode || calibration.scarWeight;
-
-            // Small delay for UX
-            await new Promise(r => setTimeout(r, 300));
-
-            const timeoutPromise = new Promise((_, reject) => {
-                setTimeout(() => reject(new Error('timeout')), 12000);
-            });
-
-            try {
-                photoAnalysis = await Promise.race([
-                    analyzeTattooImage(photoDataUrl, hasCalibration ? calibration : null),
-                    timeoutPromise
-                ]);
-            } catch (e) {
-                photoAnalysis = null;
-            }
-
-            if (!photoAnalysis) {
-                showToast('图片分析失败，请重新拍照');
-                btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4M12 3a9 9 0 100 18 9 9 0 000-18z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> 开始图片分析';
-                btn.style.pointerEvents = '';
-                return;
-            }
-
-            // 交叉验证
-            photoAnalysis = window.TattooAnalysisCore.crossValidate(photoAnalysis, questionnaire);
-
-            // Show preview
-            const preview = document.getElementById('ai-preview');
-            const tags = document.getElementById('ai-preview-tags');
-            tags.innerHTML = '';
-
-            const findings = [
-                photoAnalysis.colorType,
-                photoAnalysis.densityLabel,
-                photoAnalysis.coverageLabel,
-                photoAnalysis.skinCondition
-            ];
-
-            findings.forEach(f => {
-                const tag = document.createElement('div');
-                tag.className = 'ai-tag';
-                tag.textContent = f;
-                tags.appendChild(tag);
-            });
-
-            if (photoAnalysis.confidence) {
-                const confLabels = { high: '高置信度', medium: '中等置信度', low: '低置信度' };
-                const confBadge = document.createElement('div');
-                confBadge.className = photoAnalysis.confidence === 'low' ? 'ai-tag warning' : 'ai-tag';
-                confBadge.textContent = confLabels[photoAnalysis.confidence] || '';
-                tags.appendChild(confBadge);
-            } else if (photoAnalysis.sceneWarning) {
-                const warning = document.createElement('div');
-                warning.className = 'ai-tag warning';
-                warning.textContent = photoAnalysis.sceneWarning;
-                tags.appendChild(warning);
-            }
-
-            preview.classList.add('show');
-            btn.style.display = 'none';
-            document.getElementById('btn-continue-assess').style.display = 'flex';
+            continueToAssess();
         }
 
         function skipPhoto() {
@@ -3518,10 +3432,10 @@
                 list.appendChild(groupEl);
             });
 
-            if (photoAnalysis) {
+            if (photoDataUrl) {
                 const photoGroup = document.createElement('div');
                 photoGroup.className = 'customer-summary-group';
-                photoGroup.innerHTML = '<div class="customer-summary-question">照片</div><div class="customer-summary-tags"><span class="customer-summary-tag">已上传并完成本地初步分析</span></div>';
+                photoGroup.innerHTML = '<div class="customer-summary-question">照片</div><div class="customer-summary-tags"><span class="customer-summary-tag">已上传，将随报告提交给师傅查看</span></div>';
                 list.appendChild(photoGroup);
             } else {
                 const photoGroup = document.createElement('div');
@@ -3673,12 +3587,18 @@
 
             // 2. AI 智能分析
             const combinedInsight = window.TattooAnalysisCore.buildCombinedInsight(selSummary, photoAnalysis);
+            // 照片分析已下线：有照片时覆盖文案，避免"建议补充照片"的误导
+            if (photoDataUrl) {
+                combinedInsight.text = combinedInsight.hasConditionConcern
+                    ? '已结合你填写的问卷信息和上传的照片。你勾选了皮肤状态相关情况，建议师傅重点复核。'
+                    : '已结合你填写的问卷信息和上传的照片，师傅远程查看后可给出更精准的判断。';
+            }
             document.getElementById('detail-ai-analysis').innerHTML =
                 '<p style="margin-bottom:8px;">' + report.suggestion + '</p>' +
                 '<p style="color:var(--gray-500);font-size:12px;">' + combinedInsight.text + '</p>';
 
             // 3. 优势因素
-            renderReportList('advantages', report.advantages, '当前问卷选项未形成明显优势标签，请上传照片获取更精准判断。');
+            renderReportList('advantages', report.advantages, '当前问卷选项未形成明显优势标签，可结合照片由师傅进一步确认。');
 
             // 4. 影响因素
             renderReportList('risk-factors', report.riskFactors, '暂未识别到突出的高风险因素，仍建议结合照片由师傅人工复核。');
@@ -3719,30 +3639,11 @@
             ];
             document.getElementById('detail-notes').innerHTML = notes.map(n => '<li>' + n + '</li>').join('');
 
-            // AI photo card
+            // 纹身照片卡片：有照片就展示（供师傅查看），不再输出分析结论
             const aiCard = document.getElementById('ai-card');
-            if (photoAnalysis) {
+            if (photoDataUrl) {
                 aiCard.classList.add('show');
-                document.getElementById('ai-card-photo-img').src = photoAnalysis.photoDataUrl;
-                document.getElementById('ai-finding-color').textContent = photoAnalysis.colorType;
-                document.getElementById('ai-finding-density').textContent = photoAnalysis.densityLabel;
-                document.getElementById('ai-finding-coverage').textContent = photoAnalysis.coverageLabel;
-                document.getElementById('ai-finding-skin').textContent = photoAnalysis.skinCondition;
-
-                let warningText = '';
-                if (photoAnalysis.confidence) {
-                    const confLabels = { high: '可信度：高 · 评估可靠', medium: '可信度：中 · 建议结合实际情况判断', low: '可信度：低 · 仅作参考' };
-                    warningText = confLabels[photoAnalysis.confidence] || '';
-                }
-                if (photoAnalysis.crossCheckNote) {
-                    warningText = warningText ? warningText + ' | ' + photoAnalysis.crossCheckNote : photoAnalysis.crossCheckNote;
-                }
-                document.getElementById('ai-finding-warning').textContent = warningText ||
-                    (combinedInsight.hasConditionConcern ? '已结合你勾选的皮肤状态，建议师傅重点复核' : '已结合你填写的信息');
-
-                if (photoAnalysis.needFollowUp && photoAnalysis.followUpQuestion) {
-                    setTimeout(() => showFollowup(photoAnalysis.followUpQuestion), 600);
-                }
+                document.getElementById('ai-card-photo-img').src = photoDataUrl;
             } else {
                 aiCard.classList.remove('show');
             }
@@ -3860,24 +3761,8 @@
             }
             treatmentCount = '1-3';
 
-            // 重新分析
-            if (!photoDataUrl) return;
-
-            const btn = document.getElementById('btn-analyze');
-            const questionnaire = getQuestionnaire();
-            const calibration = window.TattooAnalysisCore.getRecommendedThresholds(questionnaire);
-            const hasCalibration = calibration.strictMode || calibration.relaxedMode || calibration.scarWeight;
-
-            try {
-                const newAnalysis = await analyzeTattooImage(photoDataUrl, hasCalibration ? calibration : null);
-                if (newAnalysis) {
-                    photoAnalysis = window.TattooAnalysisCore.crossValidate(newAnalysis, questionnaire);
-                    // 重新渲染结果
-                    calculateResult();
-                }
-            } catch (e) {
-                showToast('重新分析失败');
-            }
+            // 照片分析已下线：仅修正问卷答案，重新渲染结果
+            calculateResult();
         }
 
         // ==================== Init ====================
