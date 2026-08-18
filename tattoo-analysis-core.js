@@ -546,6 +546,16 @@
             result.crossCheckNote = '问卷与图片分析一致：已治疗过，图片显示色素已淡化或仅残留少量';
             result.needFollowUp = false;
             result.followUpQuestion = '';
+            // 红线兜底：治疗过的纹身严禁报"未检测到/已清除"，修正为淡化/残留表述
+            if (result.colorType && result.colorType.includes('未检测到')) {
+                result.colorType = '褪色黑灰（治疗后残留）';
+            }
+            if (result.coverageLabel === '几乎无' || result.coverageLabel === '照片复杂，无法判断') {
+                result.coverageLabel = '小面积残留';
+            }
+            if (result.densityLabel === '色素已基本清除') {
+                result.densityLabel = '色素已淡化';
+            }
         }
         // 3. 从未治疗 + 图片未检出 → medium
         else if (q.treatments === 'never' && hasNoInk) {
@@ -570,6 +580,20 @@
             result.crossCheckNote = '已结合你填写的问卷信息与图片分析结果';
             result.needFollowUp = (result.confidence === 'low');
             result.followUpQuestion = result.needFollowUp ? '这张照片光线不太好，请问您之前洗过这个纹身吗？' : '';
+        }
+
+        // 红线兜底：问卷明确表示有纹身/疤痕时，严禁报"未检测到/已清除"
+        const userConfirmsTattoo = q.treatments === '1-3' || q.treatments === '4_plus' || q.hasScar === 'yes' || (q.tattooType && q.tattooType !== 'other');
+        if (userConfirmsTattoo) {
+            if (result.colorType && result.colorType.includes('未检测到')) {
+                result.colorType = '色素较浅，建议上传更近照片确认';
+            }
+            if (result.densityLabel === '色素已基本清除') {
+                result.densityLabel = '色素较浅';
+            }
+            if (result.coverageLabel === '几乎无') {
+                result.coverageLabel = '小面积';
+            }
         }
 
         return result;
