@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>咱家点菜小程序</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif; }
+  body { background:#f5f6f8; color:#333; padding-bottom:90px; }
+  .app { max-width:480px; margin:0 auto; background:#f5f6f8; min-height:100vh; }
+
+  /* 顶部 */
+  .header { background:linear-gradient(135deg,#ff5f4a,#e64340); color:#fff; padding:14px 16px 12px; position:sticky; top:0; z-index:20; box-shadow:0 2px 8px rgba(230,67,64,.25); }
+  .header h1 { font-size:19px; text-align:center; letter-spacing:1px; }
+  .header .sub { text-align:center; font-size:12px; opacity:.92; margin-top:5px; }
+  .header .picked { display:inline-block; background:rgba(255,255,255,.18); border-radius:14px; padding:2px 10px; margin-top:6px; font-size:12px; }
+
+  /* 分类标签 */
+  .cats { position:sticky; top:80px; z-index:15; background:#fff; padding:8px 10px; display:flex; gap:8px; overflow-x:auto; white-space:nowrap; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+  .cats::-webkit-scrollbar { display:none; }
+  .cat { flex-shrink:0; padding:6px 14px; border-radius:18px; font-size:13px; background:#f2f3f5; color:#666; border:1px solid transparent; transition:all .15s; }
+  .cat.active { background:#e64340; color:#fff; font-weight:600; }
+
+  /* 菜品区 */
+  .dish-area { padding:12px 12px 20px; }
+  .dish { background:#fff; border-radius:12px; padding:12px; margin-bottom:10px; border:1.5px solid transparent; display:flex; justify-content:space-between; align-items:center; transition:all .15s; box-shadow:0 1px 3px rgba(0,0,0,.05); }
+  .dish.sel { border-color:#e64340; background:#fff7f5; }
+  .dish .left { flex:1; min-width:0; }
+  .dish .name { font-size:15px; font-weight:600; }
+  .dish .tags { margin-top:5px; font-size:11px; display:flex; gap:5px; flex-wrap:wrap; }
+  .tag-hot { background:#ffe4e0; color:#e64340; padding:2px 7px; border-radius:10px; }
+  .tag-lv1 { background:#e8f7ec; color:#2e9e4f; padding:2px 7px; border-radius:10px; }
+  .tag-lv2 { background:#fff6df; color:#c98a12; padding:2px 7px; border-radius:10px; }
+  .tag-lv3 { background:#ffece3; color:#e06a2a; padding:2px 7px; border-radius:10px; }
+  .dish .note { width:100%; margin-top:8px; border:none; background:#f5f6f8; border-radius:8px; padding:7px 10px; font-size:12px; color:#555; outline:none; }
+  .dish .check { width:26px; height:26px; border-radius:50%; border:2px solid #d9dbe0; margin-left:10px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:14px; color:#fff; transition:all .15s; }
+  .dish.sel .check { background:#e64340; border-color:#e64340; }
+
+  /* 底部栏 */
+  .bottom { position:fixed; bottom:0; left:0; right:0; max-width:480px; margin:0 auto; background:#fff; padding:10px 12px calc(10px + env(safe-area-inset-bottom)); display:flex; gap:8px; box-shadow:0 -2px 10px rgba(0,0,0,.08); z-index:30; }
+  .btn { flex:1; border:none; border-radius:10px; padding:12px 0; font-size:14px; font-weight:600; color:#fff; cursor:pointer; }
+  .btn-main { background:linear-gradient(135deg,#ff5f4a,#e64340); }
+  .btn-green { background:#34c759; }
+  .btn-gray { flex:0 0 auto; width:60px; background:#e5e7eb; color:#666; }
+
+  /* 弹窗 */
+  .mask { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:50; display:none; align-items:flex-end; justify-content:center; }
+  .mask.show { display:flex; }
+  .sheet { width:100%; max-width:480px; background:#fff; border-radius:16px 16px 0 0; max-height:82vh; overflow-y:auto; padding:18px 16px 20px; animation:up .2s ease; }
+  @keyframes up { from { transform:translateY(30px); opacity:.5; } to { transform:translateY(0); opacity:1; } }
+  .sheet h3 { font-size:16px; font-weight:700; margin-bottom:12px; }
+  .sheet .close { float:right; color:#999; font-size:20px; cursor:pointer; line-height:1; }
+  .final { background:#f0faf3; border-radius:10px; padding:10px 12px; margin-top:6px; }
+  .final .ftitle { color:#2e9e4f; font-weight:700; font-size:13px; margin-bottom:4px; }
+  .sheet .btns { display:flex; gap:8px; margin-top:14px; }
+  .toast { position:fixed; left:50%; top:45%; transform:translate(-50%,-50%); background:rgba(0,0,0,.78); color:#fff; padding:10px 22px; border-radius:10px; font-size:14px; z-index:99; display:none; }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- 顶部 -->
+  <div class="header">
+    <h1>🍳 咱家点菜小程序</h1>
+    <div class="sub">想吃啥点啥 · 微信直接打开</div>
+    <div class="picked" id="pickedInfo">已选 0 道</div>
+  </div>
+
+  <!-- 分类 -->
+  <div class="cats" id="cats"></div>
+
+  <!-- 菜品 -->
+  <div class="dish-area" id="dishArea"></div>
+
+  <!-- 底部 -->
+  <div class="bottom">
+    <button class="btn btn-main" onclick="showSummary()">📋 查看清单</button>
+    <button class="btn btn-green" onclick="copyList()">📤 复制清单</button>
+    <button class="btn btn-gray" onclick="clearAll()">清空</button>
+  </div>
+</div>
+
+<!-- 清单弹窗 -->
+<div class="mask" id="mask" onclick="if(event.target===this)hideSummary()">
+  <div class="sheet">
+    <span class="close" onclick="hideSummary()">✕</span>
+    <h3>📋 今日点菜清单</h3>
+    <div id="summaryContent"></div>
+    <div class="btns">
+      <button class="btn btn-main" onclick="copyList()">复制清单发微信</button>
+      <button class="btn btn-gray" style="width:90px;flex:none" onclick="hideSummary()">关闭</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ======== 菜品库（沿用图片6大分类全部菜品）========
+const dishData = {
+  pork: [
+    {name:"鱼香肉丝",level:2,hot:true},{name:"青椒肉丝",level:1,hot:false},{name:"京酱肉丝",level:2,hot:false},
+    {name:"木耳炒肉片",level:1,hot:false},{name:"芹菜炒肉片",level:1,hot:false},{name:"蒜苔炒肉",level:1,hot:false},
+    {name:"土豆炒肉丝",level:1,hot:false},{name:"韭黄炒肉丝",level:1,hot:false},{name:"杭椒小炒肉",level:2,hot:true},
+    {name:"回锅肉",level:2,hot:true},{name:"盐煎肉",level:2,hot:true},{name:"农家小炒肉",level:2,hot:true},
+    {name:"红烧肉",level:3,hot:false},{name:"红烧排骨",level:3,hot:false},{name:"红烧猪蹄",level:3,hot:false},
+    {name:"红烧狮子头",level:3,hot:false},{name:"梅菜扣肉",level:3,hot:false},{name:"粉蒸肉",level:3,hot:false},
+    {name:"酱肘子",level:3,hot:false},{name:"东坡肉",level:3,hot:false},{name:"黄焖排骨",level:3,hot:false},
+    {name:"焖五花肉",level:2,hot:false},{name:"排骨汤",level:3,hot:false},{name:"莲藕排骨汤",level:3,hot:false},
+    {name:"玉米排骨汤",level:3,hot:false},{name:"萝卜排骨汤",level:3,hot:false},{name:"海带排骨汤",level:3,hot:false},
+    {name:"猪蹄汤",level:3,hot:false},{name:"猪肚排骨汤",level:3,hot:false},{name:"瘦肉丸子汤",level:2,hot:false},
+    {name:"糖醋里脊",level:2,hot:false},{name:"锅包肉",level:2,hot:false},{name:"炸酥肉",level:3,hot:false},
+    {name:"烤五花肉",level:3,hot:false},{name:"香煎猪排",level:2,hot:false},{name:"蜜汁叉烧",level:3,hot:false},
+    {name:"椒盐排骨",level:2,hot:true}
+  ],
+  bird: [
+    {name:"宫保鸡丁",level:2,hot:true},{name:"辣子鸡",level:3,hot:true},{name:"黄焖鸡",level:2,hot:false},
+    {name:"香菇滑鸡",level:2,hot:false},{name:"土豆烧鸡块",level:2,hot:false},{name:"可乐鸡翅",level:2,hot:false},
+    {name:"红烧鸡翅",level:2,hot:false},{name:"清炖鸡汤",level:3,hot:false},{name:"冬瓜鸡汤",level:3,hot:false},
+    {name:"木耳炒鸡片",level:1,hot:false},{name:"芹菜炒鸡丝",level:1,hot:false},{name:"青椒炒鸡丁",level:1,hot:false},
+    {name:"泡椒鸡杂",level:2,hot:true},{name:"酸辣鸡杂",level:2,hot:true},{name:"香酥鸡排",level:3,hot:false},
+    {name:"奥尔良烤翅",level:2,hot:false},{name:"白切鸡",level:3,hot:false},{name:"口水鸡",level:2,hot:true},
+    {name:"盐焗鸡",level:3,hot:false},{name:"豉油鸡",level:3,hot:false},{name:"三杯鸡",level:2,hot:false},
+    {name:"大盘鸡",level:3,hot:true},{name:"板栗烧鸡",level:3,hot:false},{name:"腐竹焖鸡",level:2,hot:false},
+    {name:"金针菇鸡汤",level:3,hot:false},{name:"虫草花鸡汤",level:3,hot:false},{name:"手撕鸡",level:2,hot:true},
+    {name:"酱爆鸡丁",level:2,hot:false},{name:"北京烤鸭",level:3,hot:false},{name:"啤酒鸭",level:3,hot:false},
+    {name:"红烧鸭块",level:2,hot:false},{name:"姜母鸭",level:3,hot:false},{name:"卤鸭翅",level:2,hot:false},
+    {name:"卤鸭掌",level:2,hot:false},{name:"鸭血粉丝汤",level:2,hot:false},{name:"酸萝卜老鸭汤",level:3,hot:true},
+    {name:"魔芋烧鸭",level:2,hot:true}
+  ],
+  beef: [
+    {name:"土豆烧牛肉",level:3,hot:false},{name:"青椒牛肉丝",level:2,hot:false},{name:"芹菜牛肉丝",level:2,hot:false},
+    {name:"韭黄炒牛肉",level:2,hot:false},{name:"木耳炒牛肉",level:2,hot:false},{name:"洋葱炒牛肉",level:2,hot:false},
+    {name:"杭椒牛柳",level:2,hot:true},{name:"黑椒牛柳",level:2,hot:false},{name:"孜然牛肉",level:2,hot:true},
+    {name:"小炒黄牛肉",level:2,hot:true},{name:"泡椒牛肉丝",level:2,hot:true},{name:"蒜苔炒牛肉",level:2,hot:false},
+    {name:"红烧牛肉",level:3,hot:false},{name:"番茄炖牛肉",level:3,hot:false},{name:"萝卜炖牛肉",level:3,hot:false},
+    {name:"土豆焖牛腩",level:3,hot:false},{name:"牛腩煲",level:3,hot:false},{name:"酱牛肉",level:3,hot:false},
+    {name:"卤牛肉",level:2,hot:false},{name:"腐竹烧牛肉",level:2,hot:false},{name:"香菇烧牛肉",level:2,hot:false},
+    {name:"冬瓜炖牛肉",level:3,hot:false},{name:"水煮牛肉",level:3,hot:true},{name:"麻婆牛肉",level:2,hot:true},
+    {name:"酸汤肥牛",level:2,hot:true},{name:"泡椒肥牛",level:2,hot:true},{name:"尖椒牛肉末",level:1,hot:true},
+    {name:"豆角炒牛肉末",level:1,hot:false},{name:"黑椒牛排",level:2,hot:false},{name:"香煎牛排",level:2,hot:false},
+    {name:"铁板牛肉",level:2,hot:true},{name:"烤牛肉串",level:3,hot:true},{name:"孜然烤牛肉",level:3,hot:true},
+    {name:"牛肉汤",level:3,hot:false},{name:"萝卜牛肉汤",level:3,hot:false},{name:"西红柿牛肉汤",level:3,hot:false},
+    {name:"牛肉粉丝汤",level:2,hot:false}
+  ],
+  vegetable: [
+    {name:"清炒油麦菜",level:1,hot:false},{name:"清炒生菜",level:1,hot:false},{name:"清炒上海青",level:1,hot:false},
+    {name:"清炒空心菜",level:1,hot:false},{name:"清炒菠菜",level:1,hot:false},{name:"清炒茼蒿",level:1,hot:false},
+    {name:"清炒西兰花",level:1,hot:false},{name:"清炒花菜",level:1,hot:false},{name:"清炒娃娃菜",level:1,hot:false},
+    {name:"清炒小白菜",level:1,hot:false},{name:"清炒四季豆",level:1,hot:false},{name:"清炒荷兰豆",level:1,hot:false},
+    {name:"酸辣土豆丝",level:1,hot:true},{name:"干煸土豆条",level:2,hot:true},{name:"红烧茄子",level:2,hot:false},
+    {name:"鱼香茄子",level:2,hot:true},{name:"干煸豆角",level:2,hot:true},{name:"手撕包菜",level:1,hot:true},
+    {name:"酸辣大白菜",level:1,hot:true},{name:"蒜蓉娃娃菜",level:1,hot:false},{name:"蒜蓉西兰花",level:1,hot:false},
+    {name:"蒜蓉油麦菜",level:1,hot:false},{name:"香菇青菜",level:1,hot:false},{name:"木耳炒山药",level:1,hot:false},
+    {name:"木耳炒白菜",level:1,hot:false},{name:"木耳炒黄瓜",level:1,hot:false},{name:"番茄炒蛋",level:1,hot:false},
+    {name:"韭菜炒蛋",level:1,hot:false},{name:"青椒炒蛋",level:1,hot:false},{name:"西葫芦炒蛋",level:1,hot:false},
+    {name:"地三鲜",level:2,hot:false},{name:"干锅土豆片",level:2,hot:true},{name:"干锅花菜",level:2,hot:true},
+    {name:"凉拌黄瓜",level:1,hot:false}
+  ],
+  bean: [
+    {name:"麻婆豆腐",level:2,hot:true},{name:"家常豆腐",level:2,hot:false},{name:"红烧豆腐",level:1,hot:false},
+    {name:"肉末烧豆腐",level:2,hot:false},{name:"鱼香豆腐",level:2,hot:true},{name:"番茄烧豆腐",level:1,hot:false},
+    {name:"香菇烧豆腐",level:1,hot:false},{name:"金针菇豆腐",level:1,hot:false},{name:"白菜炖豆腐",level:1,hot:false},
+    {name:"萝卜炖豆腐",level:1,hot:false},{name:"海带炖豆腐",level:1,hot:false},{name:"油豆腐烧肉",level:2,hot:false},
+    {name:"千张结烧肉",level:2,hot:false},{name:"青椒炒千张",level:1,hot:false},{name:"芹菜炒千张",level:1,hot:false},
+    {name:"韭菜炒千张",level:1,hot:false},{name:"千张炒肉丝",level:1,hot:false},{name:"千张结炖排骨",level:3,hot:false},
+    {name:"凉拌千张",level:1,hot:false},{name:"香干炒肉",level:1,hot:false},{name:"青椒香干",level:1,hot:false},
+    {name:"芹菜香干",level:1,hot:false},{name:"韭菜香干",level:1,hot:false},{name:"香干炒肉丝",level:1,hot:false},
+    {name:"卤豆干",level:2,hot:false},{name:"凉拌豆干",level:1,hot:false},{name:"豆腐干炒蒜苗",level:1,hot:false},
+    {name:"豆腐干炒芹菜",level:1,hot:false},{name:"油豆腐烧鸡块",level:2,hot:false},{name:"油豆腐炖白菜",level:1,hot:false},
+    {name:"炸豆腐泡",level:2,hot:false},{name:"豆腐泡烧牛肉",level:2,hot:false},{name:"腐竹炒肉",level:1,hot:false},
+    {name:"腐竹烧排骨",level:3,hot:false},{name:"凉拌腐竹",level:1,hot:false},{name:"香菇腐竹",level:1,hot:false},
+    {name:"豆腐炒鸡蛋",level:1,hot:false}
+  ],
+  egg: [
+    {name:"番茄炒蛋",level:1,hot:false},{name:"韭菜炒蛋",level:1,hot:false},{name:"青椒炒蛋",level:1,hot:false},
+    {name:"洋葱炒蛋",level:1,hot:false},{name:"木耳炒蛋",level:1,hot:false},{name:"黄瓜炒蛋",level:1,hot:false},
+    {name:"西葫芦炒蛋",level:1,hot:false},{name:"苦瓜炒蛋",level:1,hot:false},{name:"蒜苗炒蛋",level:1,hot:false},
+    {name:"芹菜炒蛋",level:1,hot:false},{name:"香菇炒蛋",level:1,hot:false},{name:"葱花炒蛋",level:1,hot:false},
+    {name:"荷包蛋",level:1,hot:false},{name:"水煮蛋",level:1,hot:false},{name:"蒸水蛋",level:1,hot:false},
+    {name:"肉末蒸蛋",level:2,hot:false},{name:"香菇蒸蛋",level:1,hot:false},{name:"紫菜蛋花汤",level:1,hot:false},
+    {name:"番茄蛋花汤",level:1,hot:false},{name:"黄瓜蛋花汤",level:1,hot:false},{name:"菠菜蛋花汤",level:1,hot:false},
+    {name:"丝瓜蛋花汤",level:1,hot:false},{name:"青椒炒荷包蛋",level:1,hot:true},{name:"红烧荷包蛋",level:2,hot:false},
+    {name:"糖醋荷包蛋",level:2,hot:false},{name:"卤蛋",level:2,hot:false},{name:"茶叶蛋",level:2,hot:false},
+    {name:"乡巴佬卤蛋",level:2,hot:false},{name:"皮蛋豆腐",level:1,hot:false},{name:"凉拌皮蛋",level:1,hot:false},
+    {name:"青椒炒皮蛋",level:1,hot:true},{name:"皮蛋瘦肉粥",level:2,hot:false},{name:"鸡蛋炒粉丝",level:1,hot:false},
+    {name:"鸡蛋炒木耳",level:1,hot:false},{name:"鸡蛋年糕",level:2,hot:false},{name:"鸡蛋炒干",level:1,hot:false},
+    {name:"鸡蛋炒西葫芦",level:1,hot:false}
+  ]
+};
+const catName = { pork:"猪肉类", bird:"禽类", beef:"牛肉类", vegetable:"蔬菜类", bean:"豆制品类", egg:"蛋类" };
+
+// ======== 状态 ========
+let store = JSON.parse(localStorage.getItem("familyMenuV3") || "null") || [];
+let currentCat = "pork";
+
+function saveStore(){ localStorage.setItem("familyMenuV3", JSON.stringify(store)); }
+
+function levelText(lv){ return lv===1?"⭐快手":lv===2?"⭐⭐常规":"⭐⭐⭐硬菜"; }
+function levelClass(lv){ return lv===1?"tag-lv1":lv===2?"tag-lv2":"tag-lv3"; }
+
+// ======== 渲染 ========
+function renderCats(){
+  const wrap = document.getElementById("cats");
+  wrap.innerHTML = "";
+  Object.keys(dishData).forEach(k=>{
+    const b = document.createElement("button");
+    b.className = "cat" + (k===currentCat?" active":"");
+    b.textContent = catName[k] + " " + dishData[k].length;
+    b.onclick = ()=>{ currentCat = k; renderCats(); renderDishes(); };
+    wrap.appendChild(b);
+  });
+}
+
+function renderDishes(){
+  const wrap = document.getElementById("dishArea");
+  wrap.innerHTML = "";
+  const list = dishData[currentCat];
+  list.forEach(dish=>{
+    const idx = store.findIndex(i=>i.name===dish.name);
+    const sel = idx>=0;
+    const note = sel ? store[idx].note||"" : "";
+    const card = document.createElement("div");
+    card.className = "dish" + (sel?" sel":"");
+    card.innerHTML = `
+      <div class="left">
+        <div class="name">${dish.name}</div>
+        <div class="tags">
+          ${dish.hot?'<span class="tag-hot">🌶️ 辣</span>':""}
+          <span class="${levelClass(dish.level)}">${levelText(dish.level)}</span>
+        </div>
+        <input class="note" placeholder="备注（少辣 / 不要葱 / 少油…）" value="${note}">
+      </div>
+      <div class="check">${sel?"✓":""}</div>`;
+    // 点击勾选
+    card.onclick = (e)=>{
+      if(e.target.classList.contains("note")) return;
+      const i = store.findIndex(x=>x.name===dish.name);
+      if(i>=0){ store.splice(i,1); }
+      else{ store.push({name:dish.name, level:dish.level, hot:dish.hot, note:card.querySelector(".note").value}); }
+      saveStore(); renderDishes(); renderPicked();
+    };
+    // 备注输入
+    const input = card.querySelector(".note");
+    input.oninput = ()=>{
+      const i = store.findIndex(x=>x.name===dish.name);
+      if(i>=0){ store[i].note = input.value; saveStore(); }
+    };
+    wrap.appendChild(card);
+  });
+}
+
+function renderPicked(){
+  document.getElementById("pickedInfo").textContent = "已选 " + store.length + " 道";
+}
+
+// ======== 清单弹窗 ========
+function buildSummary(){
+  let html = `<div class="final"><div class="ftitle">✅ 今日点菜清单（共 ${store.length} 道）</div>`;
+  if(store.length===0) html += `<div class="dish-line" style="color:#bbb">还没有点菜，去上面挑几道吧～</div>`;
+  store.forEach(d=>{
+    html += `<div class="dish-line">• ${d.name} ${d.hot?"🌶️":""} ${levelText(d.level)} ${d.note?"【"+d.note+"】":""}</div>`;
+  });
+  html += `</div>`;
+  return html;
+}
+
+function showSummary(){
+  document.getElementById("summaryContent").innerHTML = buildSummary();
+  document.getElementById("mask").classList.add("show");
+}
+function hideSummary(){ document.getElementById("mask").classList.remove("show"); }
+
+// ======== 复制 ========
+function copyList(){
+  let text = "【今日点菜清单】\n";
+  if(store.length===0) text += "还没有点菜\n";
+  store.forEach(d=>{
+    text += `• ${d.name} ${d.hot?"🌶️":""} ${levelText(d.level)} ${d.note?"【"+d.note+"】":""}\n`;
+  });
+  const done = ()=>{ toast("✅ 清单已复制，去微信粘贴发送"); };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done).catch(()=>fallbackCopy(text,done));
+  }else{
+    fallbackCopy(text,done);
+  }
+}
+function fallbackCopy(text,done){
+  const ta = document.createElement("textarea");
+  ta.value = text; ta.style.position="fixed"; ta.style.opacity="0";
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand("copy"); done(); }catch(e){ toast("复制失败，请手动截图"); }
+  document.body.removeChild(ta);
+}
+
+// ======== 清空 ========
+function clearAll(){
+  if(confirm("确定清空所有点菜记录吗？")){
+    store = [];
+    saveStore(); renderDishes(); renderPicked();
+    toast("已清空");
+  }
+}
+
+// ======== Toast ========
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.style.display = "block";
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=>{ t.style.display = "none"; }, 1800);
+}
+
+// ======== 初始化 ========
+renderCats();
+renderDishes();
+renderPicked();
+</script>
+</body>
+</html>
